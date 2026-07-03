@@ -147,10 +147,11 @@ static void draw_seeds(const hud_state_t *hud, float time) {
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 52, y0 + lh,
                      "DIFFICULTY  %08lX", (unsigned long)hud->dseed);
 
-    /* Caret under the digit being edited (8 hex digits per row). */
+    /* Caret under the digit being edited (8 hex digits per row).
+     * "^" is an rdpq_text style-escape character; "^^" is a literal. */
     int row = hud->cursor / 8, digit = hud->cursor % 8;
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO,
-                     hex_x + digit * 8, y0 + row * lh + 9, "^");
+                     hex_x + digit * 8, y0 + row * lh + 9, "^^");
 
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 44, 176,
                      "D-PAD: MOVE/CHANGE DIGIT  B: BACK");
