@@ -1,0 +1,6 @@
+build/
+build.log
+*.z64
+*.elf.sym
+*.eeprom
+.directory
