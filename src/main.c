@@ -77,15 +77,18 @@ static void sim_step(float dt) {
     projectiles_fire_tick(inp, &player, dt);
     projectiles_update(dt);
     director_update(dt, player.x, player.y);
-    enemies_update(dt);
+    enemies_update(dt, player.x, player.y, player.vx, player.vy);
     bomb_update(dt);
 
     /* Smart bomb (GDD 3.5/8.2): Z detonates a full charge — clears the
-     * screen (no splits, kills still score) and grants brief invuln. */
+     * screen and enemy bolts (no splits, kills still score) and grants
+     * brief invulnerability. */
     if (inp->btn_z && !z_prev && bomb_try_fire()) {
         for (int e = 0; e < MAX_ENEMIES; e++)
             if (enemies[e].alive)
                 enemies_kill(e, false);
+        for (int b = 0; b < MAX_EBULLETS; b++)
+            ebullets[b].alive = false;
         synth_bomb();
         grid_impulse(player.x, player.y, 130.f, 330.f);
         if (invuln < 1.f) invuln = 1.f;
@@ -103,16 +106,21 @@ static void sim_step(float dt) {
             float rr = enemy_radius(&enemies[e]) + 4.f;
             if (dx * dx + dy * dy < rr * rr) {
                 bullets[b].alive = false;
-                float ex = enemies[e].x, ey = enemies[e].y;
-                int   gen = enemies[e].gen;
-                enemies_kill(e, true);
-                shards_burst(ex, ey, gen == 0 ? 3 : 2);
+                /* Armored snake segments soak the shot (tail-first
+                 * destruction, GDD 3.1). */
+                if (enemy_vulnerable(e)) {
+                    float ex = enemies[e].x, ey = enemies[e].y;
+                    int   ns = enemy_shard_count(&enemies[e]);
+                    enemies_kill(e, true);
+                    shards_burst(ex, ey, ns);
+                }
                 break;
             }
         }
     }
 
-    /* Enemy x player (skip during i-frames and spawn grace). */
+    /* Enemy / enemy-bolt x player (skip during i-frames; enemies also
+     * respect their spawn grace). */
     if (invuln > 0.f) {
         invuln -= dt;
     } else {
@@ -122,6 +130,18 @@ static void sim_step(float dt) {
             float dy = enemies[e].y - player.y;
             float rr = enemy_radius(&enemies[e]) + 9.f;
             if (dx * dx + dy * dy < rr * rr) {
+                player_hit();
+                break;
+            }
+        }
+    }
+    if (invuln <= 0.f && state == ST_PLAY) {
+        for (int b = 0; b < MAX_EBULLETS; b++) {
+            if (!ebullets[b].alive) continue;
+            float dx = ebullets[b].x - player.x;
+            float dy = ebullets[b].y - player.y;
+            if (dx * dx + dy * dy < 13.f * 13.f) {
+                ebullets[b].alive = false;
                 player_hit();
                 break;
             }

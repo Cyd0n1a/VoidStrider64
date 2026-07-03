@@ -3,7 +3,8 @@
 #include "../input/input.h"
 #include "player.h"
 
-#define MAX_BULLETS 40
+#define MAX_BULLETS  40
+#define MAX_EBULLETS 24
 
 typedef struct {
     bool  alive;
@@ -11,6 +12,9 @@ typedef struct {
 } bullet_t;
 
 extern bullet_t bullets[MAX_BULLETS];
+extern bullet_t ebullets[MAX_EBULLETS];   /* enemy bolts (Turret/Pulsar) */
+
+void ebullet_spawn(float x, float y, float vx, float vy);
 
 void projectiles_init(void);
 void projectiles_update(float dt);

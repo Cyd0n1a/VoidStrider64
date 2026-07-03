@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define SAMPLE_RATE 32000
-#define MAX_VOICES  8
+#define MAX_VOICES  10
 
 enum { W_SINE, W_SQUARE, W_SAW, W_NOISE };
 
@@ -13,7 +13,8 @@ enum { W_SINE, W_SQUARE, W_SAW, W_NOISE };
 #define SLOT_SHOT0   0   /* shots round-robin 0..1 */
 #define SLOT_DIE0    2   /* enemy deaths round-robin 2..4 */
 #define SLOT_SHARD   5
-#define SLOT_PDIE0   6   /* player death uses 6+7 (two layers) */
+#define SLOT_PDIE0   6   /* player death / bomb use 6+7 (two layers) */
+#define SLOT_EBOLT0  8   /* enemy bolts round-robin 8..9 */
 
 typedef struct {
     int   active;
@@ -27,7 +28,7 @@ typedef struct {
 } voice_t;
 
 static voice_t  voices[MAX_VOICES];
-static int      rr_shot, rr_die;
+static int      rr_shot, rr_die, rr_ebolt;
 static uint32_t noise_lfsr = 0xACE1u;
 static uint32_t rng_state  = 0x5EEDu;
 
@@ -62,10 +63,9 @@ void synth_shot(void) {
     rr_shot ^= 1;
 }
 
-void synth_enemy_die(int gen) {
+void synth_enemy_die(float size) {
     /* Noise through a decaying low-pass; smaller enemies = shorter,
      * brighter burst (GDD 7.2: size scales the formula, not the asset). */
-    float size = (gen == 0) ? 1.f : 0.55f;
     voice_t v = {
         .len = (int)(SAMPLE_RATE * (0.14f + 0.16f * size)),
         .f0 = 1.f, .f1 = 1.f,
@@ -75,6 +75,17 @@ void synth_enemy_die(int gen) {
     };
     voice_start(SLOT_DIE0 + rr_die, &v);
     rr_die = (rr_die + 1) % 3;
+}
+
+void synth_ebolt(void) {
+    float nudge = frange(0.92f, 1.08f);
+    voice_t v = {
+        .len = (int)(SAMPLE_RATE * 0.08f),
+        .f0 = 300.f * nudge, .f1 = 140.f * nudge,
+        .wave = W_SAW, .volume = 0.13f, .lp_a = 1.f, .lp_decay = 1.f,
+    };
+    voice_start(SLOT_EBOLT0 + rr_ebolt, &v);
+    rr_ebolt ^= 1;
 }
 
 void synth_shard(int chain) {
@@ -175,7 +186,7 @@ static void synth_mix_into(short *buf, int n_frames) {
 
 void synth_init(void) {
     memset(voices, 0, sizeof(voices));
-    rr_shot = rr_die = 0;
+    rr_shot = rr_die = rr_ebolt = 0;
     audio_init(SAMPLE_RATE, 4);
     mixer_init(16);   /* headroom for xm64 music channels in M4 (GDD 7.3) */
 }

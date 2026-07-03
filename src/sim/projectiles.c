@@ -7,6 +7,7 @@
 #define MUZZLE_OFF   14.f
 
 bullet_t bullets[MAX_BULLETS];
+bullet_t ebullets[MAX_EBULLETS];
 
 static float fire_cooldown;
 static float aim_x, aim_y;    /* soft-lock: last valid aim direction */
@@ -20,6 +21,17 @@ void projectiles_init(void) {
 void projectiles_clear(void) {
     for (int i = 0; i < MAX_BULLETS; i++)
         bullets[i].alive = false;
+    for (int i = 0; i < MAX_EBULLETS; i++)
+        ebullets[i].alive = false;
+}
+
+void ebullet_spawn(float x, float y, float vx, float vy) {
+    for (int i = 0; i < MAX_EBULLETS; i++) {
+        if (ebullets[i].alive) continue;
+        ebullets[i] = (bullet_t){ .alive = true, .x = x, .y = y,
+                                  .vx = vx, .vy = vy };
+        return;
+    }
 }
 
 static void fire(const player_t *p) {
@@ -57,13 +69,18 @@ void projectiles_fire_tick(const input_state_t *inp, const player_t *p, float dt
     }
 }
 
-void projectiles_update(float dt) {
-    for (int i = 0; i < MAX_BULLETS; i++) {
-        if (!bullets[i].alive) continue;
-        bullets[i].x += bullets[i].vx * dt;
-        bullets[i].y += bullets[i].vy * dt;
-        if (bullets[i].x < -ARENA_HALF_W || bullets[i].x > ARENA_HALF_W ||
-            bullets[i].y < -ARENA_HALF_H || bullets[i].y > ARENA_HALF_H)
-            bullets[i].alive = false;
+static void pool_update(bullet_t *pool, int count, float dt) {
+    for (int i = 0; i < count; i++) {
+        if (!pool[i].alive) continue;
+        pool[i].x += pool[i].vx * dt;
+        pool[i].y += pool[i].vy * dt;
+        if (pool[i].x < -ARENA_HALF_W || pool[i].x > ARENA_HALF_W ||
+            pool[i].y < -ARENA_HALF_H || pool[i].y > ARENA_HALF_H)
+            pool[i].alive = false;
     }
+}
+
+void projectiles_update(float dt) {
+    pool_update(bullets, MAX_BULLETS, dt);
+    pool_update(ebullets, MAX_EBULLETS, dt);
 }

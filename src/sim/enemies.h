@@ -2,29 +2,52 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define MAX_ENEMIES 24
+#define MAX_ENEMIES 40
 
-/* Wanderer (GDD 3.1): rotating tetrahedron, noise-driven drift, splits
- * into two smaller ones on death. More species arrive in M3. */
+/* Seconds from Pulsar spawn to burst; the renderer scales its growth
+ * off the same clock (enemy_t.timer counts down from this). */
+#define PULSAR_FUSE 5.0f
+
+/* The bestiary (GDD 3.1). SP_SNAKE covers head and body segments alike:
+ * a segment with next == -1 behind it is the current tail (and the only
+ * vulnerable one, GDD: "destroyed segment-by-segment tail-first"). */
+typedef enum {
+    SP_WANDERER,   /* rotating tetra, noise drift, splits on death   */
+    SP_SEEKER,     /* elongated diamond, lead-predicted pursuit      */
+    SP_SWARMER,    /* small triangle, boids-lite flocking, packs     */
+    SP_TURRET,     /* static hexagon, fires slow aimed bolts         */
+    SP_PULSAR,     /* grows, then bursts into a ring of projectiles  */
+    SP_SNAKE,      /* chain of tetras, tail-first destruction        */
+    SPECIES_COUNT
+} species_t;
+
 typedef struct {
-    bool  alive;
-    int   gen;              /* 0 = full size, 1 = split child */
-    float x, y;
-    float heading;          /* drift direction, wobbled by an LFO */
-    float wander_phase, wander_spd;
-    float spin;             /* current rotation angle */
-    float spin_spd;
-    float axis[3];          /* per-spawn rotation axis (normalized) */
-    float jit[3];           /* per-spawn scale jitter (GDD 3.1) */
-    float spawn_t;          /* fade-in grace: no collisions while > 0 */
+    bool      alive;
+    species_t species;
+    int       gen;              /* wanderer: 0 full / 1 split child */
+    float     x, y;
+    float     heading;
+    float     wander_phase, wander_spd;
+    float     spin, spin_spd;
+    float     axis[3];          /* per-spawn rotation axis (normalized) */
+    float     jit[3];           /* per-spawn scale jitter (GDD 3.1) */
+    float     spawn_t;          /* fade-in grace: no collisions while > 0 */
+    float     timer;            /* turret cooldown / pulsar growth */
+    int       lead;             /* snake: index of segment ahead, -1 = head */
 } enemy_t;
 
 extern enemy_t enemies[MAX_ENEMIES];
 
-void enemies_init(uint32_t seed);
-void enemies_update(float dt);
-int  enemies_spawn(float x, float y, int gen);   /* -1 if pool full */
-void enemies_kill(int idx, bool allow_split);    /* fx + scoring; bombs suppress splits */
-void enemies_clear(void);                        /* on player death */
-int  enemies_count(void);
+void  enemies_init(uint32_t seed);
+void  enemies_update(float dt, float px, float py, float pvx, float pvy);
+int   enemies_spawn(float x, float y, species_t sp, int gen);  /* -1 if full */
+void  enemies_spawn_snake(float x, float y, int segments);
+void  enemies_kill(int idx, bool allow_split);   /* fx + scoring */
+void  enemies_clear(void);
+int   enemies_count(void);
+int   enemies_count_species(species_t sp);
+
 float enemy_radius(const enemy_t *e);
+int   enemy_shard_count(const enemy_t *e);
+/* Snake segments with a live follower shrug bullets off. */
+bool  enemy_vulnerable(int idx);

@@ -26,10 +26,9 @@ int scoring_mult(void) {
     return m > MULT_MAX ? MULT_MAX : m;
 }
 
-void scoring_kill(int gen) {
-    /* Wanderer: 30 for the parent, 15 per split child (GDD 3.1/8.1). */
-    uint32_t base = (gen == 0) ? 30 : 15;
-    score += base * (uint32_t)scoring_mult();
+void scoring_kill(int base_points) {
+    /* Per-species base points live with the species defs (enemies.c). */
+    score += (uint32_t)base_points * (uint32_t)scoring_mult();
     kill_pulse += 0.22f;
     if (kill_pulse > 1.f) kill_pulse = 1.f;
 }

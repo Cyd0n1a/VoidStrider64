@@ -4,7 +4,7 @@
 void     scoring_init(void);
 void     scoring_update(float dt);
 
-void     scoring_kill(int gen);   /* enemy killed; points scale by class/gen x mult */
+void     scoring_kill(int base_points);   /* enemy killed; base x multiplier */
 int      scoring_shard(void);     /* shard collected; returns pickup chain for SFX pitch */
 void     scoring_death(void);     /* player died: multiplier + chain reset (GDD 8.1) */
 
