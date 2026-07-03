@@ -97,7 +97,7 @@ void enemies_update(float dt) {
     }
 }
 
-void enemies_kill(int idx) {
+void enemies_kill(int idx, bool allow_split) {
     enemy_t *e = &enemies[idx];
     int   gen = e->gen;
     float x = e->x, y = e->y;
@@ -108,8 +108,9 @@ void enemies_kill(int idx) {
     grid_impulse(x, y, gen == 0 ? 42.f : 24.f, gen == 0 ? 70.f : 45.f);
 
     /* Wanderers split into two smaller ones (GDD 3.1). Children get a
-     * grace period so they don't instantly eat the killing stream. */
-    if (gen == 0) {
+     * grace period so they don't instantly eat the killing stream.
+     * Smart bombs vaporize outright — no splits (GDD 3.5). */
+    if (gen == 0 && allow_split) {
         for (int c = 0; c < 2; c++) {
             int ci = enemies_spawn(x + frange(-6.f, 6.f), y + frange(-6.f, 6.f), 1);
             if (ci < 0) break;

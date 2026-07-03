@@ -1,5 +1,6 @@
 #include "shards.h"
 #include "arena.h"
+#include "bomb.h"
 #include "../meta/scoring.h"
 #include "../audio/synth.h"
 #include <math.h>
@@ -61,6 +62,7 @@ void shards_update(float dt, float px, float py) {
         if (d2 < COLLECT_RADIUS * COLLECT_RADIUS) {
             s->alive = false;
             synth_shard(scoring_shard());
+            bomb_notify_shard();   /* combos speed the recharge (GDD 8.2) */
             continue;
         }
 

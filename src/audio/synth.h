@@ -11,3 +11,4 @@ void synth_shot(void);           /* square blip, pitch downslide, random nudge *
 void synth_enemy_die(int gen);   /* noise burst through decaying LP; gen scales size */
 void synth_shard(int chain);     /* rising sine blip, pitch steps with combo chain */
 void synth_player_die(void);     /* layered noise + descending sine sweep */
+void synth_bomb(void);           /* longer, deeper layered sweep (GDD 7.2) */

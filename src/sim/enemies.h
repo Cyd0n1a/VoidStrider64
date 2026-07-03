@@ -24,7 +24,7 @@ extern enemy_t enemies[MAX_ENEMIES];
 void enemies_init(uint32_t seed);
 void enemies_update(float dt);
 int  enemies_spawn(float x, float y, int gen);   /* -1 if pool full */
-void enemies_kill(int idx);                      /* split + fx + scoring */
+void enemies_kill(int idx, bool allow_split);    /* fx + scoring; bombs suppress splits */
 void enemies_clear(void);                        /* on player death */
 int  enemies_count(void);
 float enemy_radius(const enemy_t *e);

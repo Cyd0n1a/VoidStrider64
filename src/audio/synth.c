@@ -106,6 +106,24 @@ void synth_player_die(void) {
     voice_start(SLOT_PDIE0 + 1, &s);
 }
 
+void synth_bomb(void) {
+    /* GDD 7.2: layered noise + descending sine sweep, duration matched
+     * to the screen-clear moment. Shares the player-death slot pair. */
+    voice_t n = {
+        .len = (int)(SAMPLE_RATE * 1.1f),
+        .f0 = 1.f, .f1 = 1.f,
+        .wave = W_NOISE, .volume = 0.45f,
+        .lp_a = 0.8f, .lp_decay = 0.99993f,
+    };
+    voice_t s = {
+        .len = (int)(SAMPLE_RATE * 1.0f),
+        .f0 = 340.f, .f1 = 32.f,
+        .wave = W_SINE, .volume = 0.34f, .lp_a = 1.f, .lp_decay = 1.f,
+    };
+    voice_start(SLOT_PDIE0,     &n);
+    voice_start(SLOT_PDIE0 + 1, &s);
+}
+
 static void synth_mix_into(short *buf, int n_frames) {
     for (int i = 0; i < n_frames; i++) {
         float sample = 0.f;

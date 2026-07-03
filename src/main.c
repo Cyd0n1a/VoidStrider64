@@ -8,6 +8,7 @@
 #include "sim/enemies.h"
 #include "sim/projectiles.h"
 #include "sim/shards.h"
+#include "sim/bomb.h"
 #include "sim/director.h"
 #include "meta/scoring.h"
 #include "audio/synth.h"
@@ -26,6 +27,7 @@ static player_t     player;
 static game_state_t state;
 static int          lives;
 static float        invuln;
+static bool         z_prev;
 
 static void run_reset(void) {
     player_init(&player);
@@ -34,9 +36,11 @@ static void run_reset(void) {
     shards_init();
     director_init(DIFFICULTY_SEED ^ 0xA5A5A5A5u);
     scoring_init();
+    bomb_init();
     grid_init();
     lives  = START_LIVES;
     invuln = 0.f;
+    z_prev = false;
     state  = ST_PLAY;
 }
 
@@ -74,6 +78,19 @@ static void sim_step(float dt) {
     projectiles_update(dt);
     director_update(dt, player.x, player.y);
     enemies_update(dt);
+    bomb_update(dt);
+
+    /* Smart bomb (GDD 3.5/8.2): Z detonates a full charge — clears the
+     * screen (no splits, kills still score) and grants brief invuln. */
+    if (inp->btn_z && !z_prev && bomb_try_fire()) {
+        for (int e = 0; e < MAX_ENEMIES; e++)
+            if (enemies[e].alive)
+                enemies_kill(e, false);
+        synth_bomb();
+        grid_impulse(player.x, player.y, 130.f, 330.f);
+        if (invuln < 1.f) invuln = 1.f;
+    }
+    z_prev = inp->btn_z;
 
     /* Bullet x enemy: circle checks; counts are small enough that the
      * broad-phase grid can wait (GDD 9.1 collision, M2 scope). */
@@ -88,7 +105,7 @@ static void sim_step(float dt) {
                 bullets[b].alive = false;
                 float ex = enemies[e].x, ey = enemies[e].y;
                 int   gen = enemies[e].gen;
-                enemies_kill(e);
+                enemies_kill(e, true);
                 shards_burst(ex, ey, gen == 0 ? 3 : 2);
                 break;
             }
@@ -168,6 +185,7 @@ int main(void) {
             .lives    = lives,
             .gameover = (state == ST_GAMEOVER),
             .invuln   = invuln,
+            .bomb     = bomb_charge(),
         };
         surface_t *disp = display_get();
         render_frame(disp, total, &player, &hud);

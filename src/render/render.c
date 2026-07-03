@@ -32,6 +32,12 @@ static rspq_block_t  *ship_dpl[2];
 
 static int frame_idx;
 
+/* With 3 framebuffers the CPU can run up to two frames ahead of the RSP,
+ * so two vert/matrix buffer sets alone don't guarantee the RSP finished
+ * frame N before we rewrite its buffers for frame N+2. Wait on a
+ * syncpoint per buffer set before reusing it (fixes torn/spiky verts). */
+static rspq_syncpoint_t buf_sync[2];
+
 static rspq_block_t *record_tunnel_dpl(T3DVertPacked *verts, T3DMat4FP *mat) {
     rspq_block_t *dpl;
     rspq_block_begin();
@@ -149,6 +155,9 @@ void render_frame(surface_t *disp, float time, const player_t *player,
     frame_idx ^= 1;
     int fi = frame_idx;
 
+    if (buf_sync[fi])
+        rspq_syncpoint_wait(buf_sync[fi]);
+
     tunnel_build_verts(tunnel_verts[fi], time);
     grid_build_verts(grid_verts[fi], time);
     write_thruster(ship_verts[fi], player, time);
@@ -207,4 +216,5 @@ void render_frame(surface_t *disp, float time, const player_t *player,
     render_ui_draw(hud, time);
 
     rdpq_detach_show();
+    buf_sync[fi] = rspq_syncpoint_new();
 }

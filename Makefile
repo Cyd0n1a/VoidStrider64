@@ -15,6 +15,7 @@ OBJS = \
     $(BUILD_DIR)/src/sim/projectiles.o \
     $(BUILD_DIR)/src/sim/shards.o \
     $(BUILD_DIR)/src/sim/director.o \
+    $(BUILD_DIR)/src/sim/bomb.o \
     $(BUILD_DIR)/src/gen/palette_gen.o \
     $(BUILD_DIR)/src/gen/tunnel_gen.o \
     $(BUILD_DIR)/src/gen/grid_sim.o \
@@ -30,5 +31,7 @@ $(BUILD_DIR)/voidstrider64.elf: $(OBJS)
 
 clean:
 	rm -rf $(BUILD_DIR) voidstrider64.z64 voidstrider64.elf.sym
+
+-include $(OBJS:.o=.d)
 
 .PHONY: all clean

@@ -8,6 +8,7 @@ typedef struct {
     int      lives;
     bool     gameover;
     float    invuln;     /* seconds of respawn i-frames remaining */
+    float    bomb;       /* smart bomb charge 0..1 */
 } hud_state_t;
 
 /* Draw score/multiplier/lives text and the game-over overlay. Call at
