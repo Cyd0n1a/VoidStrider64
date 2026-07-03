@@ -80,15 +80,16 @@ static const char *CREDITS[] = {
     "TINY3D - HAILTODODONGO",
     "XM PLAYBACK - LIBXM BY ARTEFACT2",
     "",
-    "AI PAIR PROGRAMMER",
-    "CLAUDE CODE - ANTHROPIC",
     "",
     "INSPIRED BY",
     "GEOMETRY WARS - BIZARRE CREATIONS",
     "SPACE GIRAFFE - LLAMASOFT",
     "",
     "(C) 2026 AMANDA HARIETTE-SCOTT",
-    "+ CYDONIS HEAVY INDUSTRIES",
+    "AND CYDONIS HEAVY INDUSTRIES (cydonis.co.uk)",
+    "",
+    "P.S - Trans rights are human rights!",
+    "Made with love, on planet Earth!",
 };
 #define CREDIT_LINES (int)(sizeof(CREDITS) / sizeof(CREDITS[0]))
 #define CREDIT_LH    10      /* line height, px */
