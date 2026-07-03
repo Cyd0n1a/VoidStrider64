@@ -22,6 +22,9 @@ run_step() {
     echo ""
 }
 
+run_step "apply vendored libdragon patches (fgeom/rspq_profile backports for tiny3d)" \
+    cp -r patches/libdragon/. libdragon/
+
 run_step "docker image pull check" \
     docker image inspect ghcr.io/dragonminded/libdragon:latest --format '{{.Id}}'
 
