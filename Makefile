@@ -35,6 +35,7 @@ OBJS = \
     $(BUILD_DIR)/src/meta/scoring.o \
     $(BUILD_DIR)/src/meta/options.o \
     $(BUILD_DIR)/src/meta/save.o \
+    $(BUILD_DIR)/src/meta/fortunes.o \
     $(BUILD_DIR)/src/audio/synth.o \
     $(BUILD_DIR)/src/audio/music.o \
     $(BUILD_DIR)/src/render/render.o \

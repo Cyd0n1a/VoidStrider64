@@ -112,6 +112,41 @@ static void draw_credits(float time) {
     }
 }
 
+/* ---- MOTD marquee: yellow fortune scrolling right-to-left ----
+ * Draws a substring window so glyph origins never go off-screen left;
+ * the fractional pixel offset keeps motion smooth. Mono font: 8px/char. */
+#define MARQUEE_SPEED 70.f
+
+static void draw_marquee(const char *text, int y, float time) {
+    static const char *cur;
+    static float x, prev_t;
+    if (!text) return;
+    if (text != cur) { cur = text; x = 320.f; prev_t = time; }
+
+    float dt = time - prev_t;
+    prev_t = time;
+    if (dt < 0.f || dt > 0.5f) dt = 0.f;
+    x -= dt * MARQUEE_SPEED;
+
+    int len = (int)strlen(text);
+    if (x < -(float)(len * 8 + 48)) x = 320.f;   /* loop with a gap */
+
+    int   i0 = 0;
+    float dx = x;
+    if (dx < 0.f) {
+        i0 = (int)((-dx + 7.99f) / 8.f);
+        dx += (float)i0 * 8.f;
+    }
+    if (i0 >= len) return;
+    int n = (int)((320.f - dx) / 8.f) + 1;
+    if (n > len - i0) n = len - i0;
+    if (n <= 0) return;
+
+    rdpq_textparms_t parms = { .style_id = 1, .max_chars = (int16_t)n };
+    rdpq_text_printf(&parms, FONT_BUILTIN_DEBUG_MONO, dx, (float)y,
+                     "%s", text + i0);
+}
+
 static void draw_options(const hud_state_t *hud, float time) {
     (void)time;
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 132, 70, "OPTIONS");
@@ -189,6 +224,7 @@ void render_ui_draw(const hud_state_t *hud, float time) {
         rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 76, 132,
                          "D-PAD L/R: BACKGROUND FX %3d%%",
                          (int)(g_options.bg_intensity * 100.f + 0.5f));
+        draw_marquee(hud->motd, 170, time);
     }
 
     if (hud->screen == SCR_GAMEOVER) {
@@ -203,6 +239,7 @@ void render_ui_draw(const hud_state_t *hud, float time) {
         if ((int)(time * 2.f) & 1)
             rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 112, 148,
                              "PRESS START");
+        draw_marquee(hud->motd, 176, time);
     }
 
     /* Bomb charge meter, bottom-left (Z to fire when full). */

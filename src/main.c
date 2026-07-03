@@ -14,6 +14,7 @@
 #include "meta/scoring.h"
 #include "meta/options.h"
 #include "meta/save.h"
+#include "meta/fortunes.h"
 #include "audio/synth.h"
 #include "audio/music.h"
 
@@ -34,6 +35,7 @@ static uint32_t cseed = DEFAULT_CSEED;
 static uint32_t dseed = DEFAULT_DSEED;
 static float    run_secs;
 static int      hs_rank = -1;
+static const char *motd;
 
 static void run_start(void) {
     /* Seeds apply from here: cosmetic reskins tunnel + bestiary,
@@ -74,6 +76,7 @@ static void player_hit(void) {
         music_stop();
         hs_rank = save_submit(scoring_score(), cseed, dseed,
                               (uint32_t)run_secs);
+        motd = fortune_random((uint32_t)timer_ticks());
     } else {
         invuln = RESPAWN_IFRAMES;
     }
@@ -170,6 +173,7 @@ static void sim_step(float dt) {
 
     if (inp->btn_start) {
         state = SCR_PAUSE;
+        motd = fortune_random((uint32_t)timer_ticks());
         return;
     }
 
@@ -324,6 +328,7 @@ int main(void) {
             .hs_rank  = hs_rank,
             .run_secs = (uint32_t)run_secs,
             .save_ok  = save_available(),
+            .motd     = motd,
         };
         surface_t *disp = display_get();
         render_frame(disp, total, &player, &hud);

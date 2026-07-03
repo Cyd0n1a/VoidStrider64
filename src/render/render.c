@@ -160,8 +160,12 @@ void render_init(void) {
 
     render_entities_init();
 
-    rdpq_text_register_font(FONT_BUILTIN_DEBUG_MONO,
-                            rdpq_font_load_builtin(FONT_BUILTIN_DEBUG_MONO));
+    rdpq_font_t *font = rdpq_font_load_builtin(FONT_BUILTIN_DEBUG_MONO);
+    rdpq_text_register_font(FONT_BUILTIN_DEBUG_MONO, font);
+    /* Style 1: yellow, for the MOTD marquee (render_ui.c). */
+    rdpq_font_style(font, 1, &(rdpq_fontstyle_t){
+        .color = RGBA32(255, 220, 40, 255),
+    });
 }
 
 void render_frame(surface_t *disp, float time, const player_t *player,

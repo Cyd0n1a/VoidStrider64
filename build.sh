@@ -25,6 +25,9 @@ run_step() {
 run_step "apply vendored libdragon patches (fgeom/rspq_profile backports for tiny3d)" \
     cp -r patches/libdragon/. libdragon/
 
+run_step "generate fortunes table from assets/fortunes.md" \
+    python3 tools/gen_fortunes.py assets/fortunes.md src/meta/fortunes_data.h
+
 # The gameplay soundtrack ships as VADPCM wav64 streamed from ROM; the
 # committed source is an mp3, decoded on the host (ffmpeg isn't in the
 # libdragon container) to 22.05kHz stereo WAV for audioconv64.
