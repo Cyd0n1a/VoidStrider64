@@ -3,9 +3,11 @@
 #include "input/input.h"
 #include "render/render.h"
 #include "gen/tunnel_gen.h"
+#include "gen/grid_sim.h"
+#include "sim/player.h"
 
-/* Cosmetic seed (GDD 8.3) — fixed for the M0 spike, player-enterable later. */
-#define M0_SEED 0xC0FFEE64u
+/* Cosmetic seed (GDD 8.3) — fixed for now, player-enterable later (M5). */
+#define RUN_SEED 0xC0FFEE64u
 
 int main(void) {
     /* GDD 2: Expansion Pak is a hard requirement. libdragon shows an
@@ -20,29 +22,53 @@ int main(void) {
     input_init();
     t3d_init((T3DInitParams){});
     render_init();
-    tunnel_init(M0_SEED);
+    tunnel_init(RUN_SEED);
+    grid_init();
 
-    long long prev  = timer_ticks();
-    float     total = 0.f;
+    player_t player;
+    player_init(&player);
+
+    /* Fixed 60 Hz sim step decoupled from render (GDD 9.1): keeps the
+     * sim deterministic per seed regardless of frame time. */
+    #define STEP_US 16667
+    long long prev   = timer_ticks();
+    long long accum  = 0;
+    float     total  = 0.f;
+    bool      z_prev = false;
 
     while (1) {
-        long long now = timer_ticks();
-        float dt = (float)TIMER_MICROS_LL(now - prev) / 1000000.f;
+        long long now  = timer_ticks();
+        long long diff = TIMER_MICROS_LL(now - prev);
         prev = now;
-        if (dt > 0.1f) dt = 0.1f;
-        total += dt;
+        if (diff > 100000) diff = 100000;
+        accum += diff;
+        total += (float)diff / 1000000.f;
 
-        input_poll();
-        const input_state_t *inp = input_get();
+        while (accum >= STEP_US) {
+            const float dt = STEP_US / 1000000.f;
+            accum -= STEP_US;
 
-        /* M0 test rig: hold A to simulate max combat intensity and watch
-         * the tunnel speed up, churn, and roll harder (GDD 6.2). The real
-         * intensity metric arrives with the spawn director (M3). */
-        float intensity = inp->btn_a ? 1.f : 0.f;
-        tunnel_update(dt, intensity);
+            input_poll();
+            const input_state_t *inp = input_get();
+
+            player_update(&player, inp, dt);
+
+            /* Ship's wake dents the membrane as it skates (GDD 6.3). */
+            grid_impulse(player.x, player.y,
+                         130.f * dt * (0.25f + 0.75f * player.speed_norm), 42.f);
+
+            /* M1 test rig: Z fires a bomb-sized ripple at the ship, A
+             * holds max tunnel intensity. Real triggers arrive M2/M3. */
+            if (inp->btn_z && !z_prev)
+                grid_impulse(player.x, player.y, 70.f, 95.f);
+            z_prev = inp->btn_z;
+
+            tunnel_update(dt, inp->btn_a ? 1.f : 0.f);
+            grid_update(dt);
+        }
 
         surface_t *disp = display_get();
-        render_frame(disp, total);
+        render_frame(disp, total, &player);
     }
 
     return 0;

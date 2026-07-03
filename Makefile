@@ -10,8 +10,11 @@ all: voidstrider64.z64
 OBJS = \
     $(BUILD_DIR)/src/main.o \
     $(BUILD_DIR)/src/input/input.o \
+    $(BUILD_DIR)/src/sim/player.o \
     $(BUILD_DIR)/src/gen/palette_gen.o \
     $(BUILD_DIR)/src/gen/tunnel_gen.o \
+    $(BUILD_DIR)/src/gen/grid_sim.o \
+    $(BUILD_DIR)/src/gen/mesh_gen.o \
     $(BUILD_DIR)/src/render/render.o
 
 voidstrider64.z64: $(BUILD_DIR)/voidstrider64.elf
