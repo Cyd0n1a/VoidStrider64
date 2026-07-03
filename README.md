@@ -5,8 +5,10 @@
 ![Logo](Logo_Cydonis.png)<br>
 
 
-**A procedurally-generated twin-stick arena shooter for the Nintendo 64.**
+**A procedurally-generated twin-stick arena shooter for the Nintendo 64.** <br>
+
 ![Logo](n64brew.webp)<br>
+
 Geometry Wars' arena combat, staged inside a Space Giraffe wormhole: a
 semi-transparent, deformable neon grid floats over an infinite, undulating
 tunnel that the whole scene appears to fly through. Every mesh, texture,
