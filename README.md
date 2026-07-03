@@ -1,5 +1,10 @@
-# VOIDSTRIDER64
+# VoidStrider64
 
+![Logo](n64-logo.png)<br>
+
+![Logo](Logo_Cydonis.png)<br>
+
+![Logo](n64brew.webp)<br>
 **A procedurally-generated twin-stick arena shooter for the Nintendo 64.**
 
 Geometry Wars' arena combat, staged inside a Space Giraffe wormhole: a
@@ -61,7 +66,7 @@ milestone M2 (combat core) of the plan described there:
 
 ## License
 
-© 2026 Amanda Hariette-Scott & Cydonis Heavy Industries. All Rights Reserved.
+© 2026 [Amanda Hariette-Scott](https://bsky.app/profile/cydonis.co.uk) & [Cydonis Heavy Industries](https://cydonis.co.uk). All Rights Reserved.
 
 libdragon and tiny3d are the work of their respective authors under their
 respective licenses (see submodules).
