@@ -70,12 +70,12 @@ static void sim_step(float dt) {
     const input_state_t *inp = input_get();
 
     if (state == ST_TITLE) {
-        /* Title rides the tunnel at cruising intensity; .xm plays. */
+        /* Title rides the tunnel, breathing with the EDM track. */
         if (inp->btn_start) {
             run_reset();
             music_gameplay();
         }
-        tunnel_update(dt, 0.3f);
+        tunnel_update(dt, 0.25f + synth_beat_pulse() * 0.3f);
         grid_update(dt);
         return;
     }
@@ -184,8 +184,10 @@ static void sim_step(float dt) {
     grid_impulse(player.x, player.y,
                  130.f * dt * (0.25f + 0.75f * player.speed_norm), 42.f);
 
-    /* Tunnel reacts to combat intensity (GDD 6.2). */
-    tunnel_update(dt, director_intensity());
+    /* Tunnel reacts to combat intensity, with the music's beats layered
+     * on top for the audio-reactive Space Giraffe feel (GDD 6.2). */
+    float inten = director_intensity() + synth_beat_pulse() * 0.15f;
+    tunnel_update(dt, inten > 1.f ? 1.f : inten);
     grid_update(dt);
 }
 

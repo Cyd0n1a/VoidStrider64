@@ -7,6 +7,12 @@
 void synth_init(void);
 void synth_poll(void);
 
+/* Live music analysis (GDD 6.2/6.3): the mixer's output is measured
+ * before SFX are added, so these react to music only — works for both
+ * the title XM and the gameplay wav64, and follows tempo changes. */
+float synth_beat_pulse(void);     /* 1 at a detected beat, exp decay to 0 */
+float synth_music_level(void);    /* smoothed music energy, roughly 0..1 */
+
 void synth_shot(void);             /* square blip, pitch downslide, random nudge */
 void synth_enemy_die(float size);  /* noise burst through decaying LP; size 0..~1.3
                                       scales duration/darkness (GDD 7.2) */

@@ -5,6 +5,7 @@
 #include "../gen/grid_sim.h"
 #include "../gen/mesh_gen.h"
 #include "../sim/arena.h"
+#include "../audio/synth.h"
 #include <t3d/t3d.h>
 #include <t3d/t3dmath.h>
 #include <libdragon.h>
@@ -159,7 +160,7 @@ void render_frame(surface_t *disp, float time, const player_t *player,
         rspq_syncpoint_wait(buf_sync[fi]);
 
     tunnel_build_verts(tunnel_verts[fi], time);
-    grid_build_verts(grid_verts[fi], time);
+    grid_build_verts(grid_verts[fi], time, synth_beat_pulse());
     write_thruster(ship_verts[fi], player, time);
     render_entities_build(fi, time);
 

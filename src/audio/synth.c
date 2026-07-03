@@ -8,13 +8,15 @@
 
 enum { W_SINE, W_SQUARE, W_SAW, W_NOISE };
 
-/* Voice slots by role, so combat spam steals predictably (GDD 7.1
- * priority-based stealing, simplified: shots only ever steal shots). */
-#define SLOT_SHOT0   0   /* shots round-robin 0..1 */
-#define SLOT_DIE0    2   /* enemy deaths round-robin 2..4 */
-#define SLOT_SHARD   5
-#define SLOT_PDIE0   6   /* player death / bomb use 6+7 (two layers) */
-#define SLOT_EBOLT0  8   /* enemy bolts round-robin 8..9 */
+/* Voice priorities (GDD 7.1: priority-based stealing when the pool is
+ * full during heavy combat). A new sound may steal an inactive slot,
+ * else the most-progressed voice of equal-or-lower priority; if
+ * everything live outranks it, the new sound is dropped. */
+#define PRIO_SHOT   1
+#define PRIO_EBOLT  1
+#define PRIO_SHARD  2
+#define PRIO_DIE    3
+#define PRIO_BIG    5   /* player death / bomb layers: never stolen */
 
 typedef struct {
     int   active;
@@ -25,10 +27,10 @@ typedef struct {
     float volume;
     float lp_y, lp_a;    /* one-pole low-pass state + coefficient */
     float lp_decay;      /* per-sample multiplier on lp_a (filter sweep) */
+    int   prio;
 } voice_t;
 
 static voice_t  voices[MAX_VOICES];
-static int      rr_shot, rr_die, rr_ebolt;
 static uint32_t noise_lfsr = 0xACE1u;
 static uint32_t rng_state  = 0x5EEDu;
 
@@ -42,12 +44,25 @@ static float frange(float a, float b) {
     return a + ((float)(rng() >> 8) / 16777216.f) * (b - a);
 }
 
-static void voice_start(int slot, const voice_t *cfg) {
-    voices[slot]        = *cfg;
-    voices[slot].active = 1;
-    voices[slot].pos    = 0;
-    voices[slot].phase  = 0.f;
-    voices[slot].lp_y   = 0.f;
+static void voice_start(int prio, const voice_t *cfg) {
+    int steal = -1;
+    float steal_score = -1.f;
+    for (int i = 0; i < MAX_VOICES; i++) {
+        if (!voices[i].active) { steal = i; break; }
+        if (voices[i].prio > prio) continue;
+        /* Prefer stealing lower priority, then the most-finished voice. */
+        float score = (float)(prio - voices[i].prio) * 10.f
+                    + (float)voices[i].pos / (float)voices[i].len;
+        if (score > steal_score) { steal_score = score; steal = i; }
+    }
+    if (steal < 0) return;   /* pool full of more important sounds */
+
+    voices[steal]        = *cfg;
+    voices[steal].active = 1;
+    voices[steal].pos    = 0;
+    voices[steal].phase  = 0.f;
+    voices[steal].lp_y   = 0.f;
+    voices[steal].prio   = prio;
 }
 
 void synth_shot(void) {
@@ -59,8 +74,7 @@ void synth_shot(void) {
         .f0 = 880.f * nudge, .f1 = 330.f * nudge,
         .wave = W_SQUARE, .volume = 0.16f, .lp_a = 1.f, .lp_decay = 1.f,
     };
-    voice_start(SLOT_SHOT0 + rr_shot, &v);
-    rr_shot ^= 1;
+    voice_start(PRIO_SHOT, &v);
 }
 
 void synth_enemy_die(float size) {
@@ -73,8 +87,7 @@ void synth_enemy_die(float size) {
         .lp_a = 0.55f - 0.25f * size,       /* big = darker thump */
         .lp_decay = 0.99965f,
     };
-    voice_start(SLOT_DIE0 + rr_die, &v);
-    rr_die = (rr_die + 1) % 3;
+    voice_start(PRIO_DIE, &v);
 }
 
 void synth_ebolt(void) {
@@ -84,8 +97,7 @@ void synth_ebolt(void) {
         .f0 = 300.f * nudge, .f1 = 140.f * nudge,
         .wave = W_SAW, .volume = 0.13f, .lp_a = 1.f, .lp_decay = 1.f,
     };
-    voice_start(SLOT_EBOLT0 + rr_ebolt, &v);
-    rr_ebolt ^= 1;
+    voice_start(PRIO_EBOLT, &v);
 }
 
 void synth_shard(int chain) {
@@ -98,7 +110,7 @@ void synth_shard(int chain) {
         .f0 = base, .f1 = base * 1.6f,
         .wave = W_SINE, .volume = 0.20f, .lp_a = 1.f, .lp_decay = 1.f,
     };
-    voice_start(SLOT_SHARD, &v);
+    voice_start(PRIO_SHARD, &v);
 }
 
 void synth_player_die(void) {
@@ -113,8 +125,8 @@ void synth_player_die(void) {
         .f0 = 620.f, .f1 = 60.f,
         .wave = W_SINE, .volume = 0.30f, .lp_a = 1.f, .lp_decay = 1.f,
     };
-    voice_start(SLOT_PDIE0,     &n);
-    voice_start(SLOT_PDIE0 + 1, &s);
+    voice_start(PRIO_BIG, &n);
+    voice_start(PRIO_BIG, &s);
 }
 
 void synth_bomb(void) {
@@ -131,8 +143,8 @@ void synth_bomb(void) {
         .f0 = 340.f, .f1 = 32.f,
         .wave = W_SINE, .volume = 0.34f, .lp_a = 1.f, .lp_decay = 1.f,
     };
-    voice_start(SLOT_PDIE0,     &n);
-    voice_start(SLOT_PDIE0 + 1, &s);
+    voice_start(PRIO_BIG, &n);
+    voice_start(PRIO_BIG, &s);
 }
 
 static void synth_mix_into(short *buf, int n_frames) {
@@ -184,9 +196,54 @@ static void synth_mix_into(short *buf, int n_frames) {
     }
 }
 
+/* ---- Live music analysis (GDD 6.2/6.3) ----
+ * Runs on the mixer output BEFORE the SFX synth adds its samples, so it
+ * hears music only. Energy-flux onset detection: a beat fires when the
+ * chunk RMS jumps well above its slow-moving average, with a refractory
+ * gap so one kick = one beat. Tracks tempo changes across the 27-minute
+ * mix automatically (fixed-BPM clocks drift: the mix spans ~70-140bpm). */
+static float beat_pulse_v;
+static float music_level_v;
+static float energy_avg;
+static int   since_beat = SAMPLE_RATE;
+
+float synth_beat_pulse(void)  { return beat_pulse_v; }
+float synth_music_level(void) { return music_level_v; }
+
+static void analyze_music(const short *buf, int n_frames) {
+    float sum = 0.f;
+    int   taken = 0;
+    for (int i = 0; i < n_frames; i += 4) {   /* sparse sampling is plenty */
+        float l = (float)buf[i * 2]     * (1.f / 32768.f);
+        float r = (float)buf[i * 2 + 1] * (1.f / 32768.f);
+        sum += l * l + r * r;
+        taken++;
+    }
+    float rms = sqrtf(sum / (float)(taken * 2));
+    float dt  = (float)n_frames / (float)SAMPLE_RATE;
+
+    /* Onset test against the slow average, then update the average. */
+    if (rms > energy_avg * 1.35f + 0.012f && since_beat > SAMPLE_RATE / 4) {
+        beat_pulse_v = 1.f;
+        since_beat   = 0;
+    }
+    since_beat += n_frames;
+
+    float blend = dt * 2.5f;
+    if (blend > 1.f) blend = 1.f;
+    energy_avg += (rms - energy_avg) * blend;
+
+    float lvl = rms * 2.4f;
+    if (lvl > 1.f) lvl = 1.f;
+    float lblend = dt * 6.f;
+    if (lblend > 1.f) lblend = 1.f;
+    music_level_v += (lvl - music_level_v) * lblend;
+
+    beat_pulse_v *= expf(-7.f * dt);
+}
+
 void synth_init(void) {
     memset(voices, 0, sizeof(voices));
-    rr_shot = rr_die = rr_ebolt = 0;
     audio_init(SAMPLE_RATE, 4);
     mixer_init(32);   /* wav64 music on 0-1, 24-channel title XM on 2-25 */
 }
@@ -196,6 +253,7 @@ void synth_poll(void) {
         short *buf = audio_write_begin();
         int n = audio_get_buffer_length();
         mixer_poll(buf, n);
+        analyze_music(buf, n);   /* music only: SFX not yet mixed in */
         synth_mix_into(buf, n);
         audio_write_end();
     }

@@ -26,4 +26,6 @@ void grid_update(float dt);
  * strength falling off linearly to `radius` (GDD 6.3 explosions). */
 void grid_impulse(float x, float y, float strength, float radius);
 
-void grid_build_verts(T3DVertPacked *dst, float time);
+/* beat: 0..1 music beat pulse — grid lines flash with it (GDD 6.3:
+ * "grid line brightness pulses gently in time with the music"). */
+void grid_build_verts(T3DVertPacked *dst, float time, float beat);

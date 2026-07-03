@@ -61,11 +61,13 @@ static inline void put_vert(T3DVertPacked *dst, int slot,
     }
 }
 
-void grid_build_verts(T3DVertPacked *dst, float time) {
+void grid_build_verts(T3DVertPacked *dst, float time, float beat) {
     /* Grid hue rides the same wheel walk as the tunnel, offset so the
-     * board stays distinguishable as the palette drifts (GDD 5.3). */
+     * board stays distinguishable as the palette drifts (GDD 5.3).
+     * Brightness breathes gently on its own and flashes with the
+     * music's detected beats (GDD 6.3). */
     float hue   = palette_base_hue(time) + 0.45f;
-    float pulse = 0.06f * fm_sinf(time * 3.f);
+    float pulse = 0.06f * fm_sinf(time * 3.f) + beat * 0.15f;
 
     for (int r = 0; r < GRID_ROWS; r++) {
         T3DVertPacked *batch = dst + r * GRID_PACKED_PER_BATCH;
@@ -82,7 +84,7 @@ void grid_build_verts(T3DVertPacked *dst, float time) {
                 if (glow > 0.45f) glow = 0.45f;
                 float v = 0.42f + glow + pulse;
                 uint32_t col = palette_hsv_rgba(hue, 0.5f, v);
-                uint32_t a   = 150 + (uint32_t)(glow * 230.f);
+                uint32_t a   = 150 + (uint32_t)((glow + beat * 0.16f) * 230.f);
                 if (a > 255) a = 255;
                 col = (col & 0xFFFFFF00u) | a;
                 put_vert(batch, slot++, gx, gy, ARENA_Z + o, col);
