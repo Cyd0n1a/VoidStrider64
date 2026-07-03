@@ -153,8 +153,11 @@ void render_entities_build(int fi, float time) {
 }
 
 void render_entities_draw(int fi, float time) {
-    /* Enemies: white facet-shaded verts x prim color, so the class hue
-     * rides the palette rotation (GDD 5.3). */
+    /* Enemies: real depth so rotating tetrahedra self-occlude correctly
+     * (Z was cleared after the background layers, so they only ever
+     * contest each other). White facet-shaded verts x prim color, so
+     * the class hue rides the palette rotation (GDD 5.3). */
+    rdpq_mode_zbuf(true, true);
     rdpq_mode_combiner(RDPQ_COMBINER1((SHADE, 0, PRIM, 0), (0, 0, 0, SHADE)));
     float hue = palette_base_hue(time) + WANDERER_HUE;
     uint32_t c0 = palette_hsv_rgba(hue, 0.90f, 1.0f);
@@ -175,7 +178,9 @@ void render_entities_draw(int fi, float time) {
     }
     t3d_matrix_pop(1);
 
-    /* Bullets + shards: plain vertex color. */
+    /* Bullets + shards: readability-critical, always painted on top —
+     * no Z test or write (GDD 1.1 #3). Leaves Z off for the ship pass. */
+    rdpq_mode_zbuf(false, false);
     rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
     rspq_block_run(proj_dpl[fi]);
 }

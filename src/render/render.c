@@ -199,7 +199,11 @@ void render_frame(surface_t *disp, float time, const player_t *player,
      * playfield, so wipe depth between layers instead of sharing Z. */
     t3d_screen_clear_depth();
 
-    /* --- Layer 2: transparent grid membrane (alpha blended) --- */
+    /* --- Layer 2: transparent grid membrane (alpha blended) ---
+     * A single plane: it neither tests nor writes Z, so gameplay can
+     * never lose a depth contest against it (entities sit at the same
+     * arena Z, enemies even extend behind it). */
+    rdpq_mode_zbuf(false, false);
     rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
     rspq_block_run(grid_dpl[fi]);
 
@@ -207,8 +211,9 @@ void render_frame(surface_t *disp, float time, const player_t *player,
     rdpq_mode_blender(0);
     render_entities_draw(fi, time);
 
-    /* Ship last; blink at 8Hz during respawn i-frames. Hidden entirely
-     * on the game-over screen. */
+    /* Ship last, Z still off (left so by the entities pass): the player
+     * always reads on top of everything (GDD 1.1 #3). Blink at 8Hz
+     * during respawn i-frames; hidden on the game-over screen. */
     bool blink = hud->invuln > 0.f && ((int)(time * 8.f) & 1);
     if (!hud->gameover && !blink)
         rspq_block_run(ship_dpl[fi]);
