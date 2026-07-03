@@ -1,6 +1,6 @@
-# Contributing to Superbounce64
+# Contributing to VoidStrider64
 
-Thanks for your interest in contributing! Superbounce64 is a small (but mighty!) ;-P ^_^ N64 game built with libdragon and tiny3d. This document explains how to report issues, propose changes, and submit pull requests so contributions are easy to review and land.
+Thanks for your interest in contributing! VoidStrider64 is a small (but mighty!) ;-P ^_^ N64 game built with libdragon and tiny3d. This document explains how to report issues, propose changes, and submit pull requests so contributions are easy to review and land.
 
 Table of contents
 - Quick start (clone & build)
@@ -20,8 +20,8 @@ To work on the project locally:
 
 1. Clone the repository and initialize submodules:
    ```bash
-   git clone https://github.com/Cyd0n1a/Superbounce64.git
-   cd Superbounce64
+   git clone https://github.com/Cyd0n1a/VoidStrider64.git
+   cd VoidStrider64
    git submodule update --init --recursive
    ```
 
@@ -121,9 +121,6 @@ If you want an automatic formatter, propose it in an issue first so the project 
 
 ## Assets, audio, and licensing
 - This project is distributed under the GPL v2 (see LICENSE.md). Any contributed code or assets must be compatible with GPL v2.
-- The repository already includes `assets/mozartku.xm`. When adding music or sound assets:
-  - Prefer tracker modules (XM) or provide source files and toolchain steps.
-  - Include attribution and license for the asset in the file header or in a CONTRIBUTING_ASSETS.md if appropriate.
 - If you add third-party libraries or assets, include information about their licenses and confirm GPL compatibility.
 
 ---
@@ -157,4 +154,4 @@ If a PR does not get a response within a reasonable time, ping a maintainer or o
 
 ---
 
-Thank you for contributing to Superbounce64 — your help makes the game better for everyone!
+Thank you for contributing to VoidStrider64 — your help makes the game better for everyone!
