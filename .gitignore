@@ -4,3 +4,5 @@ build.log
 *.elf.sym
 *.eeprom
 .directory
+filesystem/
+assets/music/gameplay.wav

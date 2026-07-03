@@ -188,7 +188,7 @@ void synth_init(void) {
     memset(voices, 0, sizeof(voices));
     rr_shot = rr_die = rr_ebolt = 0;
     audio_init(SAMPLE_RATE, 4);
-    mixer_init(16);   /* headroom for xm64 music channels in M4 (GDD 7.3) */
+    mixer_init(32);   /* wav64 music on 0-1, 24-channel title XM on 2-25 */
 }
 
 void synth_poll(void) {

@@ -12,6 +12,7 @@
 #include "sim/director.h"
 #include "meta/scoring.h"
 #include "audio/synth.h"
+#include "audio/music.h"
 
 /* Cosmetic vs difficulty seeds are separate RNG streams (GDD 8.3);
  * fixed for now, player-enterable in M5. */
@@ -21,7 +22,7 @@
 #define START_LIVES   3
 #define RESPAWN_IFRAMES 2.5f
 
-typedef enum { ST_PLAY, ST_GAMEOVER } game_state_t;
+typedef enum { ST_TITLE, ST_PLAY, ST_PAUSE, ST_GAMEOVER } game_state_t;
 
 static player_t     player;
 static game_state_t state;
@@ -56,20 +57,48 @@ static void player_hit(void) {
     shards_clear();
 
     lives--;
-    if (lives < 0)
+    if (lives < 0) {
         state = ST_GAMEOVER;
-    else
+        music_stop();
+    } else {
         invuln = RESPAWN_IFRAMES;
+    }
 }
 
 static void sim_step(float dt) {
     input_poll();
     const input_state_t *inp = input_get();
 
+    if (state == ST_TITLE) {
+        /* Title rides the tunnel at cruising intensity; .xm plays. */
+        if (inp->btn_start) {
+            run_reset();
+            music_gameplay();
+        }
+        tunnel_update(dt, 0.3f);
+        grid_update(dt);
+        return;
+    }
+
+    if (state == ST_PAUSE) {
+        /* Everything freezes; the wav64 soundtrack keeps playing
+         * (music design decision, 2026-07-03). */
+        if (inp->btn_start) state = ST_PLAY;
+        return;
+    }
+
     if (state == ST_GAMEOVER) {
-        if (inp->btn_start) run_reset();
+        if (inp->btn_start) {
+            state = ST_TITLE;
+            music_title();
+        }
         tunnel_update(dt, 0.15f);
         grid_update(dt);
+        return;
+    }
+
+    if (inp->btn_start) {
+        state = ST_PAUSE;
         return;
     }
 
@@ -170,12 +199,16 @@ int main(void) {
     joypad_init();
     timer_init();
 
+    dfs_init(DFS_DEFAULT_LOCATION);
     input_init();
     synth_init();
+    music_init();
     t3d_init((T3DInitParams){});
     render_init();
     tunnel_init(COSMETIC_SEED);
     run_reset();
+    state = ST_TITLE;
+    music_title();
 
     /* Fixed 60 Hz sim step decoupled from render (GDD 9.1): keeps the
      * sim deterministic per seed regardless of frame time. */
@@ -204,6 +237,8 @@ int main(void) {
             .mult     = scoring_mult(),
             .lives    = lives,
             .gameover = (state == ST_GAMEOVER),
+            .title    = (state == ST_TITLE),
+            .paused   = (state == ST_PAUSE),
             .invuln   = invuln,
             .bomb     = bomb_charge(),
         };

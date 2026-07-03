@@ -2,12 +2,29 @@
 #include <libdragon.h>
 
 void render_ui_draw(const hud_state_t *hud, float time) {
+    if (hud->title) {
+        /* Poor man's bold: double-strike the debug font. Real logo type
+         * arrives with the M5 meta pass. */
+        for (int dx = 0; dx < 2; dx++)
+            rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO,
+                             108.f + (float)dx, 96, "VOIDSTRIDER64");
+        rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 96, 112,
+                         "a cydonis heavy industries game");
+        if ((int)(time * 2.f) & 1)
+            rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 112, 152,
+                             "PRESS START");
+        return;
+    }
+
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 16, 20,
                      "%07lu  x%d", (unsigned long)hud->score, hud->mult);
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 250, 20,
                      "SHIPS %d", hud->lives < 0 ? 0 : hud->lives);
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 276, 230,
                      "%.0ffps", display_get_fps());
+
+    if (hud->paused)
+        rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 136, 116, "PAUSED");
 
     if (hud->gameover) {
         rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 124, 110, "GAME OVER");

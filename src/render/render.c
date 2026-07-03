@@ -207,16 +207,19 @@ void render_frame(surface_t *disp, float time, const player_t *player,
     rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
     rspq_block_run(grid_dpl[fi]);
 
-    /* --- Layer 3: gameplay, opaque on top (GDD 5.1) --- */
+    /* --- Layer 3: gameplay, opaque on top (GDD 5.1). The title screen
+     * shows only tunnel + grid. --- */
     rdpq_mode_blender(0);
-    render_entities_draw(fi, time);
+    if (!hud->title) {
+        render_entities_draw(fi, time);
 
-    /* Ship last, Z still off (left so by the entities pass): the player
-     * always reads on top of everything (GDD 1.1 #3). Blink at 8Hz
-     * during respawn i-frames; hidden on the game-over screen. */
-    bool blink = hud->invuln > 0.f && ((int)(time * 8.f) & 1);
-    if (!hud->gameover && !blink)
-        rspq_block_run(ship_dpl[fi]);
+        /* Ship last, Z still off (left so by the entities pass): the
+         * player always reads on top of everything (GDD 1.1 #3). Blink
+         * at 8Hz during respawn i-frames; hidden on game over. */
+        bool blink = hud->invuln > 0.f && ((int)(time * 8.f) & 1);
+        if (!hud->gameover && !blink)
+            rspq_block_run(ship_dpl[fi]);
+    }
 
     render_ui_draw(hud, time);
 

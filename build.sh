@@ -25,6 +25,16 @@ run_step() {
 run_step "apply vendored libdragon patches (fgeom/rspq_profile backports for tiny3d)" \
     cp -r patches/libdragon/. libdragon/
 
+# The gameplay soundtrack ships as VADPCM wav64 streamed from ROM; the
+# committed source is an mp3, decoded on the host (ffmpeg isn't in the
+# libdragon container) to 22.05kHz stereo WAV for audioconv64.
+run_step "decode soundtrack mp3 -> wav (host ffmpeg, cached)" \
+    bash -c 'if [ ! -f assets/music/gameplay.wav ] || \
+                [ assets/music/soundtrack.mp3 -nt assets/music/gameplay.wav ]; then
+                 ffmpeg -y -v error -i assets/music/soundtrack.mp3 \
+                        -ar 22050 -ac 2 assets/music/gameplay.wav
+             else echo "gameplay.wav up to date"; fi'
+
 run_step "docker image pull check" \
     docker image inspect ghcr.io/dragonminded/libdragon:latest --format '{{.Id}}'
 

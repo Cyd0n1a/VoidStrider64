@@ -12,10 +12,12 @@ Full design spec (read when you need design context): @VOIDSTRIDER64_GDD.md
 
 1. **Everything is generated, nothing is stored — except the music.** Meshes, textures,
    palettes, and SFX come from code (parametric generators, HSV wheel walks, a software
-   synth). **Never** add model importers or sampled SFX. The one deliberate exception:
-   the soundtrack is hand-composed **.xm** tracker modules, converted via `audioconv64`
-   to **.xm64** and streamed with `xm64player` (GDD 7.3). Keep that exception contained
-   to music — it must not creep into SFX or graphics.
+   synth). **Never** add model importers or sampled SFX. The one deliberate exception is
+   music (GDD 7.3, revised 2026-07-03): the **title/options** theme is a hand-composed
+   **.xm** tracker module (`assets/music/title.xm` → .xm64 via `audioconv64`, played by
+   `xm64player`); the **gameplay/pause** soundtrack is `assets/music/soundtrack.mp3`,
+   decoded to WAV by host ffmpeg in `build.sh` and converted to VADPCM **.wav64**
+   streamed from ROM. Keep the exception contained to music — never SFX or graphics.
 2. **8 MB / Expansion Pak is mandatory.** `main.c` calls `assert_memory_expanded()` at
    boot. Never add a 4 MB fallback path (GDD 2).
 3. **libdragon preview branch is required** (tiny3d depends on it). Submodules are pinned

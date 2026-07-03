@@ -7,6 +7,8 @@ typedef struct {
     int      mult;
     int      lives;
     bool     gameover;
+    bool     title;
+    bool     paused;
     float    invuln;     /* seconds of respawn i-frames remaining */
     float    bomb;       /* smart bomb charge 0..1 */
 } hud_state_t;
