@@ -78,18 +78,25 @@ static rspq_block_t *record_proj_dpl(T3DVertPacked *verts) {
     return dpl;
 }
 
+void render_entities_reseed(uint32_t seed) {
+    /* The atlas is read by in-flight display lists; drain the RSP before
+     * rewriting. Only called at run boundaries, so the hitch is free. */
+    rspq_wait();
+    for (int v = 0; v < TETRA_VARIANTS; v++)
+        mesh_gen_tetra(atlas_verts + OFF_TETRA(v), TETRA_RADIUS,
+                       seed ^ (0xBEEF0001u + (uint32_t)v));
+    mesh_gen_seeker (atlas_verts + OFF_SEEKER,  seed ^ 0x5EEC0001u);
+    mesh_gen_swarmer(atlas_verts + OFF_SWARMER, seed ^ 0x50AC0001u);
+    mesh_gen_turret (atlas_verts + OFF_TURRET,  seed ^ 0x70AE0001u);
+    mesh_gen_pulsar (atlas_verts + OFF_PULSAR,  seed ^ 0xB00C0001u);
+}
+
 void render_entities_init(void) {
     ident_mat = malloc_uncached(sizeof(T3DMat4FP));
     t3d_mat4fp_identity(ident_mat);
 
     atlas_verts = malloc_uncached(sizeof(T3DVertPacked) * ATLAS_PACKED);
-    for (int v = 0; v < TETRA_VARIANTS; v++)
-        mesh_gen_tetra(atlas_verts + OFF_TETRA(v), TETRA_RADIUS,
-                       0xBEEF0001u + (uint32_t)v);
-    mesh_gen_seeker (atlas_verts + OFF_SEEKER,  0x5EEC0001u);
-    mesh_gen_swarmer(atlas_verts + OFF_SWARMER, 0x50AC0001u);
-    mesh_gen_turret (atlas_verts + OFF_TURRET,  0x70AE0001u);
-    mesh_gen_pulsar (atlas_verts + OFF_PULSAR,  0xB00C0001u);
+    render_entities_reseed(0xC0FFEE64u);
 
     for (int i = 0; i < 2; i++) {
         enemy_mats[i] = malloc_uncached(sizeof(T3DMat4FP) * MAX_ENEMIES);

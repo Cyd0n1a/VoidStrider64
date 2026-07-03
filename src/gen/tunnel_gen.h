@@ -17,9 +17,11 @@ void  tunnel_init(uint32_t seed);
  * (GDD 6.2: tunnel reacts to game intensity). */
 void  tunnel_update(float dt, float intensity);
 
-/* Rewrite the full vertex window for this frame (verts are cheap: ~384).
- * dst must hold TUNNEL_PACKED_COUNT packed verts, slot-ordered near->far. */
-void  tunnel_build_verts(T3DVertPacked *dst, float time);
+/* Rewrite the vertex window for this frame (verts are cheap: ~384).
+ * dst must hold TUNNEL_PACKED_COUNT packed verts, slot-ordered near->far.
+ * n_rings <= TUNNEL_RINGS lets the frame-budget director shrink the
+ * window under load (GDD 9.2); rings beyond it are left unwritten. */
+void  tunnel_build_verts(T3DVertPacked *dst, float time, int n_rings);
 
 /* Current view-axis roll angle (radians) for the tunnel model matrix
  * (GDD 6.2: chase-cam roll applies to the tunnel only, never the grid). */

@@ -4,6 +4,7 @@ include $(N64_INST)/include/n64.mk
 include tiny3d/t3d.mk
 
 N64_ROM_TITLE = "VOIDSTRIDER64"
+N64_ROM_SAVETYPE = eeprom4k
 
 all: voidstrider64.z64
 
@@ -32,6 +33,8 @@ OBJS = \
     $(BUILD_DIR)/src/gen/grid_sim.o \
     $(BUILD_DIR)/src/gen/mesh_gen.o \
     $(BUILD_DIR)/src/meta/scoring.o \
+    $(BUILD_DIR)/src/meta/options.o \
+    $(BUILD_DIR)/src/meta/save.o \
     $(BUILD_DIR)/src/audio/synth.o \
     $(BUILD_DIR)/src/audio/music.o \
     $(BUILD_DIR)/src/render/render.o \

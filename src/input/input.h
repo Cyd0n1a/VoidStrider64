@@ -6,7 +6,9 @@ typedef struct {
     bool  btn_a;            /* held */
     bool  btn_z;            /* held */
     bool  btn_start;        /* pressed this poll */
-    bool  c_up, c_down, c_left, c_right;  /* held */
+    bool  a_press, b_press; /* pressed this poll (menus) */
+    bool  c_up, c_down, c_left, c_right;          /* held (fire) */
+    bool  d_up, d_down, d_left, d_right;          /* pressed (menus) */
 } input_state_t;
 
 void input_init(void);

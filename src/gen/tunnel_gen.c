@@ -1,5 +1,6 @@
 #include "tunnel_gen.h"
 #include "palette_gen.h"
+#include "../meta/options.h"
 #include <libdragon.h>
 #include <math.h>
 
@@ -74,13 +75,15 @@ void tunnel_update(float dt, float intensity) {
     if (blend > 1.f) blend = 1.f;
     intensity_cur += (intensity - intensity_cur) * blend;
 
-    float turb = 1.f + 1.5f * intensity_cur;
+    /* Background Intensity option scales turbulence and roll (GDD 8.4). */
+    float bg   = g_options.bg_intensity;
+    float turb = (1.f + 1.5f * intensity_cur) * (0.35f + 0.65f * bg);
     for (int i = 0; i < TUNNEL_RINGS; i++) {
         rings[i].phase[0] += rings[i].phase_spd[0] * turb * dt;
         rings[i].phase[1] += rings[i].phase_spd[1] * turb * dt;
     }
 
-    roll += dt * (0.12f + 0.5f * intensity_cur);
+    roll += dt * (0.12f + 0.5f * intensity_cur) * (0.4f + 0.6f * bg);
     if (roll > 6.2831853f) roll -= 6.2831853f;
 
     scroll += BASE_SPEED * (0.75f + 1.05f * intensity_cur) * dt;
@@ -97,13 +100,16 @@ void tunnel_update(float dt, float intensity) {
 
 float tunnel_roll(void) { return roll; }
 
-void tunnel_build_verts(T3DVertPacked *dst, float time) {
+void tunnel_build_verts(T3DVertPacked *dst, float time, int n_rings) {
     float base_hue = palette_base_hue(time);
     float inv_span = 1.f / (float)(TUNNEL_RINGS - 1);
     float recycle_t = scroll / TUNNEL_DZ;
+    /* Background Intensity option dims/desaturates the tunnel (GDD 8.4). */
+    float bg_v = 0.62f * (0.5f + 0.5f * g_options.bg_intensity);
+    float bg_s = 0.68f * (0.72f + 0.28f * g_options.bg_intensity);
     int   idx = 0;
 
-    for (int i = 0; i < TUNNEL_RINGS; i++) {
+    for (int i = 0; i < n_rings; i++) {
         const ring_t *rg = &rings[(head + i) % TUNNEL_RINGS];
         uint32_t abs_i = head_abs + i;
         float z  = TUNNEL_NEAR_Z - (float)i * TUNNEL_DZ + scroll;
@@ -133,8 +139,8 @@ void tunnel_build_verts(T3DVertPacked *dst, float time) {
                 /* Flowing energy bands around the wall keep it alive without
                  * textures; kept dim so gameplay reads on top (GDD 1.1 #3). */
                 float band = 0.78f + 0.22f * fm_sinf(3.f * th + time * 2.6f + (float)i * 0.55f);
-                float v = 0.62f * bright * pulse * band;
-                col[s] = palette_hsv_rgba(hue, 0.68f, v);
+                float v = bg_v * bright * pulse * band;
+                col[s] = palette_hsv_rgba(hue, bg_s, v);
                 px[s]  = (int16_t)(cx + costab[j + s] * r);
                 py[s]  = (int16_t)(cy + sintab[j + s] * r);
             }

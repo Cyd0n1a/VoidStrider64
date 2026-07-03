@@ -1,5 +1,6 @@
 #include "render_ui.h"
 #include "../gen/palette_gen.h"
+#include "../meta/options.h"
 #include <libdragon.h>
 #include <math.h>
 #include <string.h>
@@ -111,15 +112,69 @@ static void draw_credits(float time) {
     }
 }
 
+static void draw_options(const hud_state_t *hud, float time) {
+    (void)time;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 132, 70, "OPTIONS");
+
+    const int y0 = 100, lh = 14;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 70, y0,
+                     "BACKGROUND FX   %3d%%",
+                     (int)(g_options.bg_intensity * 100.f + 0.5f));
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 70, y0 + lh,
+                     "REDUCE FLASH    %s",
+                     g_options.reduce_flash ? "ON" : "OFF");
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 70, y0 + 2 * lh,
+                     "EDIT SEEDS");
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 70, y0 + 3 * lh,
+                     "BACK");
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 54, y0 + hud->cursor * lh,
+                     ">");
+
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 52, 190,
+                     "D-PAD: NAVIGATE/ADJUST  A: SELECT  B: BACK");
+    if (!hud->save_ok)
+        rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 76, 210,
+                         "! NO EEPROM - NOTHING WILL SAVE !");
+}
+
+static void draw_seeds(const hud_state_t *hud, float time) {
+    (void)time;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 140, 70, "SEEDS");
+
+    const int y0 = 104, lh = 22, hex_x = 148;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 52, y0,
+                     "COSMETIC    %08lX", (unsigned long)hud->cseed);
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 52, y0 + lh,
+                     "DIFFICULTY  %08lX", (unsigned long)hud->dseed);
+
+    /* Caret under the digit being edited (8 hex digits per row). */
+    int row = hud->cursor / 8, digit = hud->cursor % 8;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO,
+                     hex_x + digit * 8, y0 + row * lh + 9, "^");
+
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 44, 176,
+                     "D-PAD: MOVE/CHANGE DIGIT  B: BACK");
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 44, 190,
+                     "SEEDS APPLY TO THE NEXT RUN");
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 44, 204,
+                     "SHARE THEM TO SHARE THE RUN");
+}
+
 void render_ui_draw(const hud_state_t *hud, float time) {
-    if (hud->title) {
+    if (hud->screen == SCR_TITLE) {
         draw_wavy_title(time);
+        rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 124, 122,
+                         "HI %07lu", (unsigned long)hud->hi_score);
         if ((int)(time * 2.f) & 1)
-            rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 116, 136,
+            rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 116, 140,
                              "PRESS START");
+        rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 116, 154,
+                         "A: OPTIONS");
         draw_credits(time);
         return;
     }
+    if (hud->screen == SCR_OPTIONS) { draw_options(hud, time); return; }
+    if (hud->screen == SCR_SEEDS)   { draw_seeds(hud, time);   return; }
 
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 16, 20,
                      "%07lu  x%d", (unsigned long)hud->score, hud->mult);
@@ -128,13 +183,24 @@ void render_ui_draw(const hud_state_t *hud, float time) {
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 276, 230,
                      "%.0ffps", display_get_fps());
 
-    if (hud->paused)
+    if (hud->screen == SCR_PAUSE) {
         rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 136, 116, "PAUSED");
+        rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 76, 132,
+                         "D-PAD L/R: BACKGROUND FX %3d%%",
+                         (int)(g_options.bg_intensity * 100.f + 0.5f));
+    }
 
-    if (hud->gameover) {
-        rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 124, 110, "GAME OVER");
+    if (hud->screen == SCR_GAMEOVER) {
+        rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 124, 96, "GAME OVER");
+        rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 96, 112,
+                         "TIME %lus  SEED %08lX",
+                         (unsigned long)hud->run_secs,
+                         (unsigned long)hud->dseed);
+        if (hud->hs_rank >= 0)
+            rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 92, 128,
+                             "NEW HIGH SCORE - RANK %d", hud->hs_rank + 1);
         if ((int)(time * 2.f) & 1)
-            rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 112, 130,
+            rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 112, 148,
                              "PRESS START");
     }
 

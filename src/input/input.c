@@ -25,10 +25,16 @@ void input_poll(void) {
     state.btn_a     = (bool)in.btn.a;
     state.btn_z     = (bool)in.btn.z;
     state.btn_start = (bool)btn.start;
+    state.a_press   = (bool)btn.a;
+    state.b_press   = (bool)btn.b;
     state.c_up      = (bool)in.btn.c_up;
     state.c_down    = (bool)in.btn.c_down;
     state.c_left    = (bool)in.btn.c_left;
     state.c_right   = (bool)in.btn.c_right;
+    state.d_up      = (bool)btn.d_up;
+    state.d_down    = (bool)btn.d_down;
+    state.d_left    = (bool)btn.d_left;
+    state.d_right   = (bool)btn.d_right;
 }
 
 const input_state_t *input_get(void) { return &state; }

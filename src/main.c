@@ -2,6 +2,7 @@
 #include <t3d/t3d.h>
 #include "input/input.h"
 #include "render/render.h"
+#include "render/render_entities.h"
 #include "gen/tunnel_gen.h"
 #include "gen/grid_sim.h"
 #include "sim/player.h"
@@ -11,43 +12,54 @@
 #include "sim/bomb.h"
 #include "sim/director.h"
 #include "meta/scoring.h"
+#include "meta/options.h"
+#include "meta/save.h"
 #include "audio/synth.h"
 #include "audio/music.h"
 
-/* Cosmetic vs difficulty seeds are separate RNG streams (GDD 8.3);
- * fixed for now, player-enterable in M5. */
-#define COSMETIC_SEED   0xC0FFEE64u
-#define DIFFICULTY_SEED (0xC0FFEE64u ^ 0x9E3779B9u)
+/* Default seeds; both player-editable on the seeds screen (GDD 8.3). */
+#define DEFAULT_CSEED 0xC0FFEE64u
+#define DEFAULT_DSEED (0xC0FFEE64u ^ 0x9E3779B9u)
 
-#define START_LIVES   3
+#define START_LIVES     3
 #define RESPAWN_IFRAMES 2.5f
 
-typedef enum { ST_TITLE, ST_PLAY, ST_PAUSE, ST_GAMEOVER } game_state_t;
+static player_t player;
+static screen_t state;
+static int      lives;
+static float    invuln;
+static bool     z_prev;
+static int      menu_cursor;
+static uint32_t cseed = DEFAULT_CSEED;
+static uint32_t dseed = DEFAULT_DSEED;
+static float    run_secs;
+static int      hs_rank = -1;
 
-static player_t     player;
-static game_state_t state;
-static int          lives;
-static float        invuln;
-static bool         z_prev;
-
-static void run_reset(void) {
+static void run_start(void) {
+    /* Seeds apply from here: cosmetic reskins tunnel + bestiary,
+     * difficulty drives behavior/spawn RNG streams (GDD 8.3). */
+    tunnel_init(cseed);
+    render_entities_reseed(cseed);
     player_init(&player);
-    enemies_init(DIFFICULTY_SEED);
+    enemies_init(dseed);
     projectiles_init();
     shards_init();
-    director_init(DIFFICULTY_SEED ^ 0xA5A5A5A5u);
+    director_init(dseed ^ 0xA5A5A5A5u);
     scoring_init();
     bomb_init();
     grid_init();
-    lives  = START_LIVES;
-    invuln = 0.f;
-    z_prev = false;
-    state  = ST_PLAY;
+    lives    = START_LIVES;
+    invuln   = 0.f;
+    z_prev   = false;
+    run_secs = 0.f;
+    hs_rank  = -1;
+    state    = SCR_PLAY;
+    music_gameplay();
 }
 
 static void player_hit(void) {
     synth_player_die();
-    grid_impulse(player.x, player.y, 90.f, 150.f);
+    grid_impulse(player.x, player.y, 90.f * options_flash_scale(), 150.f);
     scoring_death();       /* multiplier streak resets (GDD 8.1) */
 
     /* Classic screen-clear on death, then respawn in place with brief
@@ -58,10 +70,92 @@ static void player_hit(void) {
 
     lives--;
     if (lives < 0) {
-        state = ST_GAMEOVER;
+        state = SCR_GAMEOVER;
         music_stop();
+        hs_rank = save_submit(scoring_score(), cseed, dseed,
+                              (uint32_t)run_secs);
     } else {
         invuln = RESPAWN_IFRAMES;
+    }
+}
+
+/* Edit one hex nibble of the seed pair; cursor 0..15 spans both rows. */
+static void seed_nudge(int cursor, int delta) {
+    uint32_t *s     = (cursor < 8) ? &cseed : &dseed;
+    int       shift = (7 - (cursor % 8)) * 4;
+    uint32_t  nib   = (*s >> shift) & 0xF;
+    nib = (nib + (uint32_t)(16 + delta)) & 0xF;
+    *s = (*s & ~(0xFu << shift)) | (nib << shift);
+}
+
+static void menu_step(const input_state_t *inp, float dt) {
+    switch (state) {
+    case SCR_TITLE:
+        if (inp->btn_start) { run_start(); return; }
+        if (inp->a_press)   { state = SCR_OPTIONS; menu_cursor = 0; }
+        tunnel_update(dt, 0.25f + synth_beat_pulse() * 0.3f
+                              * options_flash_scale());
+        grid_update(dt);
+        break;
+
+    case SCR_OPTIONS:
+        if (inp->d_up   && menu_cursor > 0) menu_cursor--;
+        if (inp->d_down && menu_cursor < 3) menu_cursor++;
+        if (menu_cursor == 0) {
+            if (inp->d_left)  g_options.bg_intensity -= 0.1f;
+            if (inp->d_right) g_options.bg_intensity += 0.1f;
+            if (g_options.bg_intensity < 0.2f) g_options.bg_intensity = 0.2f;
+            if (g_options.bg_intensity > 1.f)  g_options.bg_intensity = 1.f;
+        }
+        if (menu_cursor == 1 && (inp->d_left || inp->d_right || inp->a_press))
+            g_options.reduce_flash = !g_options.reduce_flash;
+        if (menu_cursor == 2 && inp->a_press) {
+            state = SCR_SEEDS;
+            menu_cursor = 0;
+            break;
+        }
+        if (inp->b_press || (menu_cursor == 3 && inp->a_press)) {
+            save_options_sync();
+            state = SCR_TITLE;
+            menu_cursor = 0;
+        }
+        tunnel_update(dt, 0.2f);
+        grid_update(dt);
+        break;
+
+    case SCR_SEEDS:
+        if (inp->d_left)  menu_cursor = (menu_cursor + 15) % 16;
+        if (inp->d_right) menu_cursor = (menu_cursor + 1) % 16;
+        if (inp->d_up)    seed_nudge(menu_cursor, +1);
+        if (inp->d_down)  seed_nudge(menu_cursor, -1);
+        if (inp->b_press) { state = SCR_OPTIONS; menu_cursor = 2; }
+        tunnel_update(dt, 0.2f);
+        grid_update(dt);
+        break;
+
+    case SCR_GAMEOVER:
+        if (inp->btn_start) {
+            state = SCR_TITLE;
+            music_title();
+        }
+        tunnel_update(dt, 0.15f);
+        grid_update(dt);
+        break;
+
+    case SCR_PAUSE:
+        /* GDD 4: D-pad adjusts background intensity mid-pause. The
+         * soundtrack keeps playing (music design, 2026-07-03). */
+        if (inp->d_left)  g_options.bg_intensity -= 0.1f;
+        if (inp->d_right) g_options.bg_intensity += 0.1f;
+        if (g_options.bg_intensity < 0.2f) g_options.bg_intensity = 0.2f;
+        if (g_options.bg_intensity > 1.f)  g_options.bg_intensity = 1.f;
+        if (inp->btn_start) {
+            save_options_sync();
+            state = SCR_PLAY;
+        }
+        break;
+
+    default: break;
     }
 }
 
@@ -69,38 +163,17 @@ static void sim_step(float dt) {
     input_poll();
     const input_state_t *inp = input_get();
 
-    if (state == ST_TITLE) {
-        /* Title rides the tunnel, breathing with the EDM track. */
-        if (inp->btn_start) {
-            run_reset();
-            music_gameplay();
-        }
-        tunnel_update(dt, 0.25f + synth_beat_pulse() * 0.3f);
-        grid_update(dt);
-        return;
-    }
-
-    if (state == ST_PAUSE) {
-        /* Everything freezes; the wav64 soundtrack keeps playing
-         * (music design decision, 2026-07-03). */
-        if (inp->btn_start) state = ST_PLAY;
-        return;
-    }
-
-    if (state == ST_GAMEOVER) {
-        if (inp->btn_start) {
-            state = ST_TITLE;
-            music_title();
-        }
-        tunnel_update(dt, 0.15f);
-        grid_update(dt);
+    if (state != SCR_PLAY) {
+        menu_step(inp, dt);
         return;
     }
 
     if (inp->btn_start) {
-        state = ST_PAUSE;
+        state = SCR_PAUSE;
         return;
     }
+
+    run_secs += dt;
 
     player_update(&player, inp, dt);
     projectiles_fire_tick(inp, &player, dt);
@@ -119,7 +192,7 @@ static void sim_step(float dt) {
         for (int b = 0; b < MAX_EBULLETS; b++)
             ebullets[b].alive = false;
         synth_bomb();
-        grid_impulse(player.x, player.y, 130.f, 330.f);
+        grid_impulse(player.x, player.y, 130.f * options_flash_scale(), 330.f);
         if (invuln < 1.f) invuln = 1.f;
     }
     z_prev = inp->btn_z;
@@ -164,7 +237,7 @@ static void sim_step(float dt) {
             }
         }
     }
-    if (invuln <= 0.f && state == ST_PLAY) {
+    if (invuln <= 0.f && state == SCR_PLAY) {
         for (int b = 0; b < MAX_EBULLETS; b++) {
             if (!ebullets[b].alive) continue;
             float dx = ebullets[b].x - player.x;
@@ -186,7 +259,8 @@ static void sim_step(float dt) {
 
     /* Tunnel reacts to combat intensity, with the music's beats layered
      * on top for the audio-reactive Space Giraffe feel (GDD 6.2). */
-    float inten = director_intensity() + synth_beat_pulse() * 0.15f;
+    float inten = director_intensity()
+                + synth_beat_pulse() * 0.15f * options_flash_scale();
     tunnel_update(dt, inten > 1.f ? 1.f : inten);
     grid_update(dt);
 }
@@ -203,13 +277,15 @@ int main(void) {
 
     dfs_init(DFS_DEFAULT_LOCATION);
     input_init();
+    options_init();
+    save_init();          /* loads high scores + persisted options */
     synth_init();
     music_init();
     t3d_init((T3DInitParams){});
     render_init();
-    tunnel_init(COSMETIC_SEED);
-    run_reset();
-    state = ST_TITLE;
+    tunnel_init(cseed);
+
+    state = SCR_TITLE;
     music_title();
 
     /* Fixed 60 Hz sim step decoupled from render (GDD 9.1): keeps the
@@ -235,14 +311,19 @@ int main(void) {
         synth_poll();
 
         hud_state_t hud = {
+            .screen   = state,
             .score    = scoring_score(),
             .mult     = scoring_mult(),
             .lives    = lives,
-            .gameover = (state == ST_GAMEOVER),
-            .title    = (state == ST_TITLE),
-            .paused   = (state == ST_PAUSE),
             .invuln   = invuln,
             .bomb     = bomb_charge(),
+            .cursor   = menu_cursor,
+            .cseed    = cseed,
+            .dseed    = dseed,
+            .hi_score = save_hi_score(),
+            .hs_rank  = hs_rank,
+            .run_secs = (uint32_t)run_secs,
+            .save_ok  = save_available(),
         };
         surface_t *disp = display_get();
         render_frame(disp, total, &player, &hud);

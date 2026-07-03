@@ -6,6 +6,7 @@
 #include "../gen/mesh_gen.h"
 #include "../sim/arena.h"
 #include "../audio/synth.h"
+#include "../meta/options.h"
 #include <t3d/t3d.h>
 #include <t3d/t3dmath.h>
 #include <libdragon.h>
@@ -39,11 +40,22 @@ static int frame_idx;
  * syncpoint per buffer set before reusing it (fixes torn/spiky verts). */
 static rspq_syncpoint_t buf_sync[2];
 
-static rspq_block_t *record_tunnel_dpl(T3DVertPacked *verts, T3DMat4FP *mat) {
+/* Frame-budget director (GDD 9.2): when the frame trends over 60fps
+ * budget, the tunnel window shrinks first — gameplay never degrades. */
+#define TUNNEL_RINGS_LOW 15
+#define TUNNEL_SEGS_LOW  (TUNNEL_RINGS_LOW - 1)
+static rspq_block_t *tunnel_dpl_low[2];
+static int   fb_level;
+static float fb_avg_ms;
+static int   fb_good;
+static long long fb_prev;
+
+static rspq_block_t *record_tunnel_dpl(T3DVertPacked *verts, T3DMat4FP *mat,
+                                       int segs) {
     rspq_block_t *dpl;
     rspq_block_begin();
         t3d_matrix_push(mat);
-        for (int s = 0; s < TUNNEL_SEGS; s++) {
+        for (int s = 0; s < segs; s++) {
             /* Load ring s and ring s+1 (contiguous, slot-ordered buffer),
              * then stitch them with a quad per side. No cull flags are set,
              * so winding doesn't matter for the inside-viewed tube. */
@@ -132,7 +144,8 @@ void render_init(void) {
         tunnel_verts[i] = malloc_uncached(sizeof(T3DVertPacked) * TUNNEL_PACKED_COUNT);
         tunnel_mat[i]   = malloc_uncached(sizeof(T3DMat4FP));
         t3d_mat4fp_identity(tunnel_mat[i]);
-        tunnel_dpl[i]   = record_tunnel_dpl(tunnel_verts[i], tunnel_mat[i]);
+        tunnel_dpl[i]     = record_tunnel_dpl(tunnel_verts[i], tunnel_mat[i], TUNNEL_SEGS);
+        tunnel_dpl_low[i] = record_tunnel_dpl(tunnel_verts[i], tunnel_mat[i], TUNNEL_SEGS_LOW);
 
         grid_verts[i]   = malloc_uncached(sizeof(T3DVertPacked) * GRID_PACKED_COUNT);
         grid_dpl[i]     = record_grid_dpl(grid_verts[i]);
@@ -159,8 +172,28 @@ void render_frame(surface_t *disp, float time, const player_t *player,
     if (buf_sync[fi])
         rspq_syncpoint_wait(buf_sync[fi]);
 
-    tunnel_build_verts(tunnel_verts[fi], time);
-    grid_build_verts(grid_verts[fi], time, synth_beat_pulse());
+    /* Frame-budget director (GDD 9.2): rolling frame-time average with
+     * hysteresis. Over budget -> shrink the tunnel window; only restore
+     * after 4s of comfortably clean frames. */
+    long long now = timer_ticks();
+    if (fb_prev) {
+        float ms = (float)TIMER_MICROS_LL(now - fb_prev) / 1000.f;
+        if (ms < 100.f)
+            fb_avg_ms = fb_avg_ms ? fb_avg_ms + (ms - fb_avg_ms) * 0.1f : ms;
+        if (fb_level == 0 && fb_avg_ms > 17.5f) {
+            fb_level = 1;
+            fb_good  = 0;
+        } else if (fb_level == 1) {
+            fb_good = (fb_avg_ms < 16.9f) ? fb_good + 1 : 0;
+            if (fb_good > 240) fb_level = 0;
+        }
+    }
+    fb_prev = now;
+    int n_rings = fb_level ? TUNNEL_RINGS_LOW : TUNNEL_RINGS;
+
+    float beat = synth_beat_pulse() * options_flash_scale();
+    tunnel_build_verts(tunnel_verts[fi], time, n_rings);
+    grid_build_verts(grid_verts[fi], time, beat);
     write_thruster(ship_verts[fi], player, time);
     render_entities_build(fi, time);
 
@@ -194,7 +227,7 @@ void render_frame(surface_t *disp, float time, const player_t *player,
     t3d_light_set_count(0);
     t3d_state_set_drawflags(T3D_FLAG_SHADED | T3D_FLAG_DEPTH | T3D_FLAG_NO_LIGHT);
     rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
-    rspq_block_run(tunnel_dpl[fi]);
+    rspq_block_run(fb_level ? tunnel_dpl_low[fi] : tunnel_dpl[fi]);
 
     /* Layer compositing (GDD 5.1): background must never occlude the
      * playfield, so wipe depth between layers instead of sharing Z. */
@@ -208,17 +241,17 @@ void render_frame(surface_t *disp, float time, const player_t *player,
     rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
     rspq_block_run(grid_dpl[fi]);
 
-    /* --- Layer 3: gameplay, opaque on top (GDD 5.1). The title screen
-     * shows only tunnel + grid. --- */
+    /* --- Layer 3: gameplay, opaque on top (GDD 5.1). Menu screens
+     * (title/options/seeds) show only tunnel + grid. --- */
     rdpq_mode_blender(0);
-    if (!hud->title) {
+    if (hud->screen >= SCR_PLAY) {
         render_entities_draw(fi, time);
 
         /* Ship last, Z still off (left so by the entities pass): the
          * player always reads on top of everything (GDD 1.1 #3). Blink
          * at 8Hz during respawn i-frames; hidden on game over. */
         bool blink = hud->invuln > 0.f && ((int)(time * 8.f) & 1);
-        if (!hud->gameover && !blink)
+        if (hud->screen != SCR_GAMEOVER && !blink)
             rspq_block_run(ship_dpl[fi]);
     }
 
