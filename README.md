@@ -52,22 +52,24 @@ into the submodule (fgeom/rspq_profile backports that tiny3d needs at the
 pinned SHA), installs libdragon in the container, builds tiny3d, then builds
 the ROM. Output is logged to `build.log`.
 
-Tested in [Ares](https://ares-emu.net/) (Homebrew Mode) and on real hardware
+Tested in [Ares](https://ares-emu.net/) (Homebrew Mode), Gopher64, and on real hardware
 via flashcart. PAL and NTSC both target 320×240 @ 60fps.
 
 ## Design
 
 The full game design document lives in
 [VOIDSTRIDER64_GDD.md](VOIDSTRIDER64_GDD.md). Current state tracks roughly
-milestone M2 (combat core) of the plan described there:
+milestone M5 (combat core+) of the plan described there:
 
 - ✅ M0 — procedural wormhole tunnel (ring conveyor, seeded LFO shapes, HSV palette drift)
 - ✅ M1 — transparent spring-deformable grid + procedural player ship
 - ✅ M2 — C-button combat, Wanderer enemies, shards/multiplier, smart bomb, procedural SFX synth
-- ⬜ M3 — full bestiary (Seeker, Swarmer, Turret, Pulsar, Snake) + spawn director
-- ⬜ M4 — .xm tracker soundtrack via xm64, beat-synced visuals
-- ⬜ M5 — seeds UI, accessibility options, EEPROM high scores
-
+- ✅ M3 — full bestiary (Seeker, Swarmer, Turret, Pulsar, Snake) + spawn director
+- ✅ M4 — .xm tracker soundtrack via xm64, beat-synced visuals. Wavetable music in core gameplay loop.
+- ✅ M5 — seeds UI, accessibility options, EEPROM high scores.
+- ⚪ M6+ — Polishing, various improvements, and REDACTED further (secret! 🤔) features! 😜
+- ⚪ M7+ — Was eaten by a small wiggly grue... 😉
+  
 ## License
 
 © 2026 [Amanda Hariette-Scott](https://bsky.app/profile/cydonis.co.uk) & [Cydonis Heavy Industries](https://cydonis.co.uk). All Rights Reserved.
