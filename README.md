@@ -20,6 +20,8 @@ branch) and [tiny3d](https://github.com/HailToDodongo/tiny3d), in C.
 
 > **Requires the Expansion Pak (8MB).** This is a hard requirement — the game
 > checks at boot and halts with an error screen without it.
+ 
+![Screenshot](Screenshot_20260703_101822.png) <br>
 
 ## Controls
 
