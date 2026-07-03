@@ -1,6 +1,8 @@
 #include <libdragon.h>
 #include <t3d/t3d.h>
+#include <math.h>
 #include "input/input.h"
+#include "input/rumble.h"
 #include "render/render.h"
 #include "render/render_entities.h"
 #include "gen/tunnel_gen.h"
@@ -61,6 +63,7 @@ static void run_start(void) {
 
 static void player_hit(void) {
     synth_player_die();
+    rumble_kick(1.f, 0.7f);
     grid_impulse(player.x, player.y, 90.f * options_flash_scale(), 150.f);
     scoring_death();       /* multiplier streak resets (GDD 8.1) */
 
@@ -166,6 +169,10 @@ static void sim_step(float dt) {
     input_poll();
     const input_state_t *inp = input_get();
 
+    /* Runs in every state so buzz tails decay and the motor always
+     * gets its off command. */
+    rumble_update(dt);
+
     if (state != SCR_PLAY) {
         menu_step(inp, dt);
         return;
@@ -196,6 +203,7 @@ static void sim_step(float dt) {
         for (int b = 0; b < MAX_EBULLETS; b++)
             ebullets[b].alive = false;
         synth_bomb();
+        rumble_kick(0.9f, 0.5f);
         grid_impulse(player.x, player.y, 130.f * options_flash_scale(), 330.f);
         if (invuln < 1.f) invuln = 1.f;
     }
@@ -217,8 +225,21 @@ static void sim_step(float dt) {
                 if (enemy_vulnerable(e)) {
                     float ex = enemies[e].x, ey = enemies[e].y;
                     int   ns = enemy_shard_count(&enemies[e]);
+                    bool  snake_head = (enemies[e].species == SP_SNAKE &&
+                                        enemies[e].lead < 0);
+                    float esize = enemy_radius(&enemies[e]);
                     enemies_kill(e, true);
                     shards_burst(ex, ey, ns);
+
+                    /* Kill feedback scales with enemy size and fades
+                     * with distance from the ship. */
+                    float kdx = ex - player.x, kdy = ey - player.y;
+                    float kd  = sqrtf(kdx * kdx + kdy * kdy);
+                    float prox = 1.f - kd / 320.f;
+                    if (prox < 0.f) prox = 0.f;
+                    float str = (snake_head ? 0.65f : 0.18f + esize * 0.02f)
+                              * (0.35f + 0.65f * prox);
+                    rumble_kick(str, snake_head ? 0.3f : 0.12f);
                 }
                 break;
             }
@@ -281,6 +302,7 @@ int main(void) {
 
     dfs_init(DFS_DEFAULT_LOCATION);
     input_init();
+    rumble_init();
     options_init();
     save_init();          /* loads high scores + persisted options */
     synth_init();

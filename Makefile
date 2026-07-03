@@ -22,6 +22,7 @@ $(BUILD_DIR)/voidstrider64.dfs: filesystem/title.xm64 filesystem/gameplay.wav64
 OBJS = \
     $(BUILD_DIR)/src/main.o \
     $(BUILD_DIR)/src/input/input.o \
+    $(BUILD_DIR)/src/input/rumble.o \
     $(BUILD_DIR)/src/sim/player.o \
     $(BUILD_DIR)/src/sim/enemies.o \
     $(BUILD_DIR)/src/sim/projectiles.o \
