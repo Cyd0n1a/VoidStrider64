@@ -11,8 +11,8 @@
  * intersections (13), row r cell centers (12) = 38 verts = 19 packed.
  * Intersection rows are duplicated across batches — a few hundred bytes
  * traded for single-DMA batches. */
-#define GRID_COLS               12
-#define GRID_ROWS               9
+#define GRID_COLS               16
+#define GRID_ROWS               12
 #define GRID_IX_W               (GRID_COLS + 1)
 #define GRID_IX_H               (GRID_ROWS + 1)
 #define GRID_VERTS_PER_BATCH    (2 * GRID_IX_W + GRID_COLS)      /* 38 */

@@ -22,3 +22,12 @@ void mesh_gen_ship(T3DVertPacked *out, uint32_t seed);
 
 /* Emit the hull triangle indices into a recorded block (8 tris). */
 void mesh_ship_draw_hull(void);
+
+/* Wanderer tetrahedron (GDD 3.1): white verts with per-face brightness
+ * variation — class color comes from prim color at draw time so it can
+ * ride the HSV wheel walk (GDD 5.3). 4 verts = 2 packed, 4 tris. */
+#define TETRA_VERTS         4
+#define TETRA_PACKED_COUNT  2
+
+void mesh_gen_tetra(T3DVertPacked *out, float radius, uint32_t seed);
+void mesh_tetra_draw(void);

@@ -1,4 +1,6 @@
 #include "render.h"
+#include "render_entities.h"
+#include "render_ui.h"
 #include "../gen/tunnel_gen.h"
 #include "../gen/grid_sim.h"
 #include "../gen/mesh_gen.h"
@@ -136,17 +138,21 @@ void render_init(void) {
     }
     frame_idx = 0;
 
+    render_entities_init();
+
     rdpq_text_register_font(FONT_BUILTIN_DEBUG_MONO,
                             rdpq_font_load_builtin(FONT_BUILTIN_DEBUG_MONO));
 }
 
-void render_frame(surface_t *disp, float time, const player_t *player) {
+void render_frame(surface_t *disp, float time, const player_t *player,
+                  const hud_state_t *hud) {
     frame_idx ^= 1;
     int fi = frame_idx;
 
     tunnel_build_verts(tunnel_verts[fi], time);
     grid_build_verts(grid_verts[fi], time);
     write_thruster(ship_verts[fi], player, time);
+    render_entities_build(fi, time);
 
     /* Chase-cam roll: rotate the tunnel around the view axis; the camera
      * and gameplay layers stay fixed and screen-relative (GDD 6.2). */
@@ -188,13 +194,17 @@ void render_frame(surface_t *disp, float time, const player_t *player) {
     rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
     rspq_block_run(grid_dpl[fi]);
 
-    /* --- Layer 3: gameplay (ship), opaque on top --- */
+    /* --- Layer 3: gameplay, opaque on top (GDD 5.1) --- */
     rdpq_mode_blender(0);
-    rspq_block_run(ship_dpl[fi]);
+    render_entities_draw(fi, time);
 
-    /* M0/M1 headroom counter (GDD 10). */
-    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 16, 20,
-                     "FPS %.1f", display_get_fps());
+    /* Ship last; blink at 8Hz during respawn i-frames. Hidden entirely
+     * on the game-over screen. */
+    bool blink = hud->invuln > 0.f && ((int)(time * 8.f) & 1);
+    if (!hud->gameover && !blink)
+        rspq_block_run(ship_dpl[fi]);
+
+    render_ui_draw(hud, time);
 
     rdpq_detach_show();
 }

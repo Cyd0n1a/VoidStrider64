@@ -3,7 +3,7 @@
 #include <libdragon.h>
 #include <math.h>
 
-#define P_MAXSP    260.f   /* units/sec — crosses the arena in ~1.2s */
+#define P_MAXSP    300.f   /* units/sec — crosses the arena in ~1.5s */
 #define P_RESPONSE 6.f     /* velocity approach rate (higher = snappier) */
 #define P_TURN     14.f    /* heading approach rate, rad/sec-ish */
 #define P_RADIUS   10.f    /* keeps the hull inside the arena walls */
