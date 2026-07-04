@@ -27,6 +27,7 @@ typedef struct {
     int      hs_rank;    /* 0-based rank of a fresh game-over run, -1 none */
     uint32_t run_secs;
     bool     save_ok;
+    bool     demo;       /* attract run: banner + no score submission */
     const char *motd;    /* fortune for the pause/game-over marquee */
 } hud_state_t;
 

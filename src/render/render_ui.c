@@ -164,8 +164,10 @@ static void draw_options(const hud_state_t *hud, float time) {
                      "REDUCE FLASH    %s",
                      g_options.reduce_flash ? "ON" : "OFF");
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 70, y0 + 2 * lh,
-                     "EDIT SEEDS");
+                     "DEMO MODE");
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 70, y0 + 3 * lh,
+                     "EDIT SEEDS");
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 70, y0 + 4 * lh,
                      "BACK");
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 54, y0 + hud->cursor * lh,
                      ">");
@@ -223,6 +225,11 @@ void render_ui_draw(const hud_state_t *hud, float time) {
                      "SHIPS %d", hud->lives < 0 ? 0 : hud->lives);
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 276, 230,
                      "%.0ffps", display_get_fps());
+
+    /* Attract-mode banner (blinks like the title's PRESS START). */
+    if (hud->demo && hud->screen == SCR_PLAY && ((int)(time * 2.f) & 1))
+        rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 88, 108,
+                         "DEMO - PRESS START");
 
     if (hud->screen == SCR_PAUSE) {
         rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 136, 116, "PAUSED");

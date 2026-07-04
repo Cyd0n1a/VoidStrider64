@@ -14,6 +14,7 @@
 #include "sim/shards.h"
 #include "sim/bomb.h"
 #include "sim/director.h"
+#include "sim/autopilot.h"
 #include "meta/scoring.h"
 #include "meta/options.h"
 #include "meta/save.h"
@@ -28,6 +29,11 @@
 #define START_LIVES     3
 #define RESPAWN_IFRAMES 2.5f
 
+/* Attract mode: idle this long on the title screen and the game plays
+ * itself — but only once per power-on, and only before the first real
+ * run. Always available manually from the options menu. */
+#define DEMO_IDLE_SECS  300.f
+
 static player_t player;
 static screen_t state;
 static int      lives;
@@ -39,6 +45,10 @@ static uint32_t dseed = DEFAULT_DSEED;
 static float    run_secs;
 static int      hs_rank = -1;
 static const char *motd;
+static bool     demo;             /* attract run in progress */
+static bool     demo_auto_armed = true;
+static float    demo_grace;       /* ignore exit input just after start */
+static float    title_idle;
 
 static void run_start(void) {
     /* Seeds apply from here: cosmetic reskins tunnel + bestiary,
@@ -59,7 +69,25 @@ static void run_start(void) {
     run_secs = 0.f;
     hs_rank  = -1;
     state    = SCR_PLAY;
+    /* Any run (human or demo) uses up the one automatic attract shot. */
+    demo_auto_armed = false;
     music_gameplay();
+}
+
+static void demo_start(void) {
+    demo = true;
+    /* The button that launched the demo is still held on the next few
+     * polls; don't let it immediately exit again. */
+    demo_grace = 1.f;
+    autopilot_reset();
+    run_start();
+}
+
+static void demo_end(void) {
+    demo       = false;
+    title_idle = 0.f;
+    state      = SCR_TITLE;
+    music_title();
 }
 
 static void player_hit(void) {
@@ -76,6 +104,11 @@ static void player_hit(void) {
 
     lives--;
     if (lives < 0) {
+        /* Attract runs never post scores: straight back to the title. */
+        if (demo) {
+            demo_end();
+            return;
+        }
         state = SCR_GAMEOVER;
         music_stop();
         hs_rank = save_submit(scoring_score(), cseed, dseed,
@@ -95,6 +128,17 @@ static void seed_nudge(int cursor, int delta) {
     *s = (*s & ~(0xFu << shift)) | (nib << shift);
 }
 
+/* Anything the player could touch counts as activity for the attract
+ * timer, including a nudged stick (drift-safe deadzone). */
+static bool any_input(const input_state_t *inp) {
+    return inp->btn_start || inp->a_press || inp->b_press || inp->btn_a ||
+           inp->btn_z ||
+           inp->c_up || inp->c_down || inp->c_left || inp->c_right ||
+           inp->d_up || inp->d_down || inp->d_left || inp->d_right ||
+           inp->move_x * inp->move_x + inp->move_y * inp->move_y
+               > 0.25f * 0.25f;
+}
+
 static void menu_step(const input_state_t *inp, float dt) {
     switch (state) {
     case SCR_SPLASH:
@@ -111,6 +155,18 @@ static void menu_step(const input_state_t *inp, float dt) {
         if (splash_finished()) music_title();
         if (inp->btn_start) { run_start(); return; }
         if (inp->a_press)   { state = SCR_OPTIONS; menu_cursor = 0; }
+
+        /* Attract mode: five untouched minutes on the fresh-boot title
+         * screen and the game demos itself (once per power-on). */
+        if (any_input(inp)) {
+            title_idle = 0.f;
+        } else if (splash_finished()) {
+            title_idle += dt;
+            if (demo_auto_armed && title_idle >= DEMO_IDLE_SECS) {
+                demo_start();
+                return;
+            }
+        }
         tunnel_update(dt, 0.25f + synth_beat_pulse() * 0.3f
                               * options_flash_scale());
         grid_update(dt);
@@ -118,7 +174,7 @@ static void menu_step(const input_state_t *inp, float dt) {
 
     case SCR_OPTIONS:
         if (inp->d_up   && menu_cursor > 0) menu_cursor--;
-        if (inp->d_down && menu_cursor < 3) menu_cursor++;
+        if (inp->d_down && menu_cursor < 4) menu_cursor++;
         if (menu_cursor == 0) {
             if (inp->d_left)  g_options.bg_intensity -= 0.1f;
             if (inp->d_right) g_options.bg_intensity += 0.1f;
@@ -128,11 +184,15 @@ static void menu_step(const input_state_t *inp, float dt) {
         if (menu_cursor == 1 && (inp->d_left || inp->d_right || inp->a_press))
             g_options.reduce_flash = !g_options.reduce_flash;
         if (menu_cursor == 2 && inp->a_press) {
+            demo_start();
+            return;
+        }
+        if (menu_cursor == 3 && inp->a_press) {
             state = SCR_SEEDS;
             menu_cursor = 0;
             break;
         }
-        if (inp->b_press || (menu_cursor == 3 && inp->a_press)) {
+        if (inp->b_press || (menu_cursor == 4 && inp->a_press)) {
             save_options_sync();
             state = SCR_TITLE;
             menu_cursor = 0;
@@ -146,7 +206,7 @@ static void menu_step(const input_state_t *inp, float dt) {
         if (inp->d_right) menu_cursor = (menu_cursor + 1) % 16;
         if (inp->d_up)    seed_nudge(menu_cursor, +1);
         if (inp->d_down)  seed_nudge(menu_cursor, -1);
-        if (inp->b_press) { state = SCR_OPTIONS; menu_cursor = 2; }
+        if (inp->b_press) { state = SCR_OPTIONS; menu_cursor = 3; }
         tunnel_update(dt, 0.2f);
         grid_update(dt);
         break;
@@ -189,6 +249,21 @@ static void sim_step(float dt) {
     if (state != SCR_PLAY) {
         menu_step(inp, dt);
         return;
+    }
+
+    /* Attract mode: the real pad only exits; the autopilot takes over
+     * the controls (same sim code paths as a human run, so the demo is
+     * as honest as the game itself). */
+    input_state_t ai;
+    if (demo) {
+        if (demo_grace > 0.f) {
+            demo_grace -= dt;
+        } else if (any_input(inp)) {
+            demo_end();
+            return;
+        }
+        autopilot_drive(&ai, &player, dt);
+        inp = &ai;
     }
 
     if (inp->btn_start) {
@@ -365,6 +440,7 @@ int main(void) {
             .run_secs = (uint32_t)run_secs,
             .save_ok  = save_available(),
             .motd     = motd,
+            .demo     = demo,
         };
         surface_t *disp = display_get();
         if (state == SCR_SPLASH)

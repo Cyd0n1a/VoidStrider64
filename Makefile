@@ -49,6 +49,7 @@ OBJS = \
     $(BUILD_DIR)/src/sim/projectiles.o \
     $(BUILD_DIR)/src/sim/shards.o \
     $(BUILD_DIR)/src/sim/director.o \
+    $(BUILD_DIR)/src/sim/autopilot.o \
     $(BUILD_DIR)/src/sim/bomb.o \
     $(BUILD_DIR)/src/gen/palette_gen.o \
     $(BUILD_DIR)/src/gen/tunnel_gen.o \
