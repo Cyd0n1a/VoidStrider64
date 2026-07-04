@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 typedef enum {
+    SCR_SPLASH,    /* boot logos; rendered by splash.c, not render_frame */
     SCR_TITLE,
     SCR_OPTIONS,
     SCR_SEEDS,

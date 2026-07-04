@@ -17,7 +17,28 @@ filesystem/gameplay.wav64: assets/music/gameplay.wav
 	@mkdir -p filesystem
 	$(N64_AUDIOCONV) --wav-compress 1 -o filesystem $<
 
-$(BUILD_DIR)/voidstrider64.dfs: filesystem/title.xm64 filesystem/gameplay.wav64
+# Boot splash logos + sounds (authored, sanctioned exception like the
+# music). PNGs/jingle-WAV under assets/splash/gen/ are produced by the
+# host ffmpeg step in build.sh.
+filesystem/ld_logo.sprite: assets/splash/gen/ld_logo.png
+	@mkdir -p filesystem
+	$(N64_MKSPRITE) -f RGBA16 -o filesystem $<
+
+filesystem/cydonis.sprite: assets/splash/gen/cydonis.png
+	@mkdir -p filesystem
+	$(N64_MKSPRITE) -f RGBA16 -o filesystem $<
+
+filesystem/dragon.wav64: assets/splash/dragon.wav
+	@mkdir -p filesystem
+	$(N64_AUDIOCONV) --wav-compress 1 -o filesystem $<
+
+filesystem/jingle.wav64: assets/splash/gen/jingle.wav
+	@mkdir -p filesystem
+	$(N64_AUDIOCONV) --wav-compress 1 -o filesystem $<
+
+$(BUILD_DIR)/voidstrider64.dfs: filesystem/title.xm64 filesystem/gameplay.wav64 \
+    filesystem/ld_logo.sprite filesystem/cydonis.sprite \
+    filesystem/dragon.wav64 filesystem/jingle.wav64
 
 OBJS = \
     $(BUILD_DIR)/src/main.o \
@@ -40,6 +61,7 @@ OBJS = \
     $(BUILD_DIR)/src/audio/synth.o \
     $(BUILD_DIR)/src/audio/music.o \
     $(BUILD_DIR)/src/render/render.o \
+    $(BUILD_DIR)/src/render/splash.o \
     $(BUILD_DIR)/src/render/render_entities.o \
     $(BUILD_DIR)/src/render/render_ui.o
 

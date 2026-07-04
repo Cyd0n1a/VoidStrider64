@@ -38,6 +38,27 @@ run_step "decode soundtrack mp3 -> wav (host ffmpeg, cached)" \
                         -ar 22050 -ac 2 assets/music/gameplay.wav
              else echo "gameplay.wav up to date"; fi'
 
+# Boot splash sources are full-size PNGs and an mp3 jingle; downscale the
+# logos to blit size and decode the jingle on the host (no ffmpeg in the
+# libdragon container). mksprite/audioconv64 pick them up from gen/.
+run_step "prepare splash assets (host ffmpeg, cached)" \
+    bash -c '
+        mkdir -p assets/splash/gen
+        gen() {
+            if [ ! -f "$2" ] || [ "$1" -nt "$2" ]; then
+                ffmpeg -y -v error -i "$1" "${@:3}" "$2"
+            else
+                echo "$(basename "$2") up to date"
+            fi
+        }
+        gen assets/splash/ld-logo.png assets/splash/gen/ld_logo.png \
+            -vf "scale=320:180:flags=lanczos,format=rgba"
+        gen assets/splash/Logo_Cydonis.png assets/splash/gen/cydonis.png \
+            -vf "scale=320:173:flags=lanczos,format=rgba"
+        gen assets/splash/cydonis-splash.mp3 assets/splash/gen/jingle.wav \
+            -ar 22050 -ac 2
+    '
+
 run_step "docker image pull check" \
     docker image inspect ghcr.io/dragonminded/libdragon:latest --format '{{.Id}}'
 

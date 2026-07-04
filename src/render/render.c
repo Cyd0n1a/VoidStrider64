@@ -1,6 +1,7 @@
 #include "render.h"
 #include "render_entities.h"
 #include "render_ui.h"
+#include "splash.h"
 #include "../gen/tunnel_gen.h"
 #include "../gen/grid_sim.h"
 #include "../gen/mesh_gen.h"
@@ -260,6 +261,10 @@ void render_frame(surface_t *disp, float time, const player_t *player,
     }
 
     render_ui_draw(hud, time);
+
+    /* Boot splash fading out over the title scene (no-op once done). */
+    if (hud->screen == SCR_TITLE)
+        splash_draw_overlay();
 
     rdpq_detach_show();
     buf_sync[fi] = rspq_syncpoint_new();

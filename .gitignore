@@ -6,4 +6,5 @@ build.log
 .directory
 filesystem/
 assets/music/gameplay.wav
+assets/splash/gen/
 src/meta/fortunes_data.h

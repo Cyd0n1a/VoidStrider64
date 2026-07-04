@@ -17,7 +17,11 @@ Full design spec (read when you need design context): @VOIDSTRIDER64_GDD.md
    **.xm** tracker module (`assets/music/title.xm` → .xm64 via `audioconv64`, played by
    `xm64player`); the **gameplay/pause** soundtrack is `assets/music/soundtrack.mp3`,
    decoded to WAV by host ffmpeg in `build.sh` and converted to VADPCM **.wav64**
-   streamed from ROM. Keep the exception contained to music — never SFX or graphics.
+   streamed from ROM. A second contained exception (2026-07-04): the **boot splash**
+   (`src/render/splash.c`) uses two authored logo sprites and two authored sounds from
+   `assets/splash/` (host ffmpeg downscales/decodes in `build.sh`, then
+   mksprite/audioconv64). Keep exceptions contained to music + boot splash — never
+   gameplay SFX or gameplay graphics.
 2. **8 MB / Expansion Pak is mandatory.** `main.c` calls `assert_memory_expanded()` at
    boot. Never add a 4 MB fallback path (GDD 2).
 3. **libdragon preview branch is required** (tiny3d depends on it). Submodules are pinned
@@ -89,7 +93,8 @@ src/meta/       scoring, EEPROM saves, accessibility options
 
 ## Never do
 
-- No asset importers, no sampled SFX, no pre-baked textures. (Music .xm64 only.)
+- No asset importers, no sampled SFX, no pre-baked textures. (Music + boot-splash
+  assets only.)
 - No 4 MB fallback; don't weaken the Expansion Pak boot check.
 - No submodule SHA bumps outside a deliberate, tested upgrade.
 - No per-frame heap allocation.

@@ -5,6 +5,7 @@
 #include "input/rumble.h"
 #include "render/render.h"
 #include "render/render_entities.h"
+#include "render/splash.h"
 #include "gen/tunnel_gen.h"
 #include "gen/grid_sim.h"
 #include "sim/player.h"
@@ -96,7 +97,18 @@ static void seed_nudge(int cursor, int delta) {
 
 static void menu_step(const input_state_t *inp, float dt) {
     switch (state) {
+    case SCR_SPLASH:
+        /* Any button skips. The full-screen phases end at the
+         * fade-to-title, which draws as an overlay on the live title
+         * scene (a true crossfade into the title screen). */
+        if (inp->btn_start || inp->a_press || inp->b_press) splash_skip();
+        if (!splash_fullscreen()) state = SCR_TITLE;
+        break;
+
     case SCR_TITLE:
+        /* Splash may still be fading out over us; music starts once it
+         * ends (music_title() no-ops when already playing). */
+        if (splash_finished()) music_title();
         if (inp->btn_start) { run_start(); return; }
         if (inp->a_press)   { state = SCR_OPTIONS; menu_cursor = 0; }
         tunnel_update(dt, 0.25f + synth_beat_pulse() * 0.3f
@@ -172,6 +184,7 @@ static void sim_step(float dt) {
     /* Runs in every state so buzz tails decay and the motor always
      * gets its off command. */
     rumble_update(dt);
+    splash_update(dt);   /* no-op once the boot splash has finished */
 
     if (state != SCR_PLAY) {
         menu_step(inp, dt);
@@ -309,10 +322,11 @@ int main(void) {
     music_init();
     t3d_init((T3DInitParams){});
     render_init();
+    splash_init();
     tunnel_init(cseed);
 
-    state = SCR_TITLE;
-    music_title();
+    /* Boot logos first; title music waits until they're done. */
+    state = SCR_SPLASH;
 
     /* Fixed 60 Hz sim step decoupled from render (GDD 9.1): keeps the
      * sim deterministic per seed regardless of frame time. */
@@ -353,7 +367,10 @@ int main(void) {
             .motd     = motd,
         };
         surface_t *disp = display_get();
-        render_frame(disp, total, &player, &hud);
+        if (state == SCR_SPLASH)
+            splash_render(disp);
+        else
+            render_frame(disp, total, &player, &hud);
     }
 
     return 0;
