@@ -2,7 +2,7 @@
 
 ![Logo](n64-logo.png)<br>
 
-![Logo](Logo_Cydonis.png)<br>
+![Logo](assets/splash/Logo_Cydonis.png)<br>
 
 
 **A procedurally-generated twin-stick arena shooter for the Nintendo 64.** <br>
