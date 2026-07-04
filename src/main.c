@@ -174,7 +174,7 @@ static void menu_step(const input_state_t *inp, float dt) {
 
     case SCR_OPTIONS:
         if (inp->d_up   && menu_cursor > 0) menu_cursor--;
-        if (inp->d_down && menu_cursor < 4) menu_cursor++;
+        if (inp->d_down && menu_cursor < 5) menu_cursor++;
         if (menu_cursor == 0) {
             if (inp->d_left)  g_options.bg_intensity -= 0.1f;
             if (inp->d_right) g_options.bg_intensity += 0.1f;
@@ -192,7 +192,11 @@ static void menu_step(const input_state_t *inp, float dt) {
             menu_cursor = 0;
             break;
         }
-        if (inp->b_press || (menu_cursor == 4 && inp->a_press)) {
+        if (menu_cursor == 4 && inp->a_press) {
+            state = SCR_ABOUT;
+            break;
+        }
+        if (inp->b_press || (menu_cursor == 5 && inp->a_press)) {
             save_options_sync();
             state = SCR_TITLE;
             menu_cursor = 0;
@@ -207,6 +211,15 @@ static void menu_step(const input_state_t *inp, float dt) {
         if (inp->d_up)    seed_nudge(menu_cursor, +1);
         if (inp->d_down)  seed_nudge(menu_cursor, -1);
         if (inp->b_press) { state = SCR_OPTIONS; menu_cursor = 3; }
+        tunnel_update(dt, 0.2f);
+        grid_update(dt);
+        break;
+
+    case SCR_ABOUT:
+        if (inp->b_press || inp->a_press || inp->btn_start) {
+            state = SCR_OPTIONS;
+            menu_cursor = 4;
+        }
         tunnel_update(dt, 0.2f);
         grid_update(dt);
         break;

@@ -7,6 +7,7 @@ typedef enum {
     SCR_TITLE,
     SCR_OPTIONS,
     SCR_SEEDS,
+    SCR_ABOUT,     /* version + live debug stats, reached from options */
     SCR_PLAY,      /* gameplay layers render from here on */
     SCR_PAUSE,
     SCR_GAMEOVER,

@@ -1,6 +1,8 @@
 #include "render_ui.h"
+#include "render.h"
 #include "../gen/palette_gen.h"
 #include "../meta/options.h"
+#include "../version.h"
 #include <libdragon.h>
 #include <math.h>
 #include <string.h>
@@ -168,6 +170,8 @@ static void draw_options(const hud_state_t *hud, float time) {
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 70, y0 + 3 * lh,
                      "EDIT SEEDS");
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 70, y0 + 4 * lh,
+                     "ABOUT");
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 70, y0 + 5 * lh,
                      "BACK");
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 54, y0 + hud->cursor * lh,
                      ">");
@@ -203,6 +207,66 @@ static void draw_seeds(const hud_state_t *hud, float time) {
                      "SHARE THEM TO SHARE THE RUN");
 }
 
+/* Live build/debug readouts. Everything is queried on the spot from
+ * libdragon (all cheap reads) so the page needs no plumbing through
+ * hud_state_t and always shows this frame's truth. */
+static void draw_about(const hud_state_t *hud, float time) {
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 140, 60, "ABOUT");
+
+    heap_stats_t heap;
+    sys_get_heap_stats(&heap);
+
+    static const char *tv_names[] = { "PAL", "NTSC", "MPAL" };
+    int tv = get_tv_type();
+    const char *tv_name = (tv >= 0 && tv <= 2) ? tv_names[tv] : "?";
+
+    float fps = display_get_fps();
+    float ms  = render_frame_ms();
+
+    const int x = 58, lh = 13;
+    int y = 84;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, x, y,
+                     "VOIDSTRIDER64 %s", VS_VERSION);
+    y += lh;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, x, y,
+                     "BUILD    %s %s", __DATE__, __TIME__);
+    y += lh + 4;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, x, y,
+                     "VIDEO    %s 320X240", tv_name);
+    y += lh;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, x, y,
+                     "FPS      %.1f", fps);
+    y += lh;
+    /* The frame-budget director's own rolling average — the number that
+     * decides when background detail gets shed (GDD 9.2). */
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, x, y,
+                     "FRAME    %.2f MS%s", ms,
+                     render_fb_reduced() ? "  (REDUCED BG)" : "");
+    y += lh;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, x, y,
+                     "HEAP     %dK USED  %dK FREE",
+                     heap.used / 1024, (heap.total - heap.used) / 1024);
+    y += lh;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, x, y,
+                     "RDRAM    %luK (EXPANSION PAK)",
+                     (unsigned long)(get_memory_size() / 1024));
+    y += lh + 4;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, x, y,
+                     "RUMBLE   %s",
+                     joypad_get_rumble_supported(JOYPAD_PORT_1)
+                         ? "PAK PRESENT" : "NO PAK");
+    y += lh;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, x, y,
+                     "EEPROM   %s", hud->save_ok ? "OK" : "NOT FOUND");
+    y += lh;
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, x, y,
+                     "UPTIME   %d:%02d  (%s BOOT)",
+                     (int)time / 60, (int)time % 60,
+                     sys_reset_type() == RESET_COLD ? "COLD" : "WARM");
+
+    rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 128, 224, "B: BACK");
+}
+
 void render_ui_draw(const hud_state_t *hud, float time) {
     if (hud->screen == SCR_TITLE) {
         draw_wavy_title(time);
@@ -218,6 +282,7 @@ void render_ui_draw(const hud_state_t *hud, float time) {
     }
     if (hud->screen == SCR_OPTIONS) { draw_options(hud, time); return; }
     if (hud->screen == SCR_SEEDS)   { draw_seeds(hud, time);   return; }
+    if (hud->screen == SCR_ABOUT)   { draw_about(hud, time);   return; }
 
     rdpq_text_printf(NULL, FONT_BUILTIN_DEBUG_MONO, 16, 20,
                      "%07lu  x%d", (unsigned long)hud->score, hud->mult);

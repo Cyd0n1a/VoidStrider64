@@ -51,6 +51,9 @@ static float fb_avg_ms;
 static int   fb_good;
 static long long fb_prev;
 
+float render_frame_ms(void)  { return fb_avg_ms; }
+bool  render_fb_reduced(void) { return fb_level != 0; }
+
 static rspq_block_t *record_tunnel_dpl(T3DVertPacked *verts, T3DMat4FP *mat,
                                        int segs) {
     rspq_block_t *dpl;
