@@ -1,4 +1,4 @@
-# VoidStrider64
+# VoidStrider64 🎮
 
 ![Logo](n64-logo.png)<br>
 
