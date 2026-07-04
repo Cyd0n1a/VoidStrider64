@@ -38,7 +38,7 @@ two when destroyed. Shard pickups also speed up your bomb recharge.
 
 ## Building
 
-Requires Docker (the toolchain runs in the official libdragon image — no host
+Requires Python3+ & Docker (the toolchain runs in the official libdragon image — no host
 toolchain needed):
 
 ```bash
