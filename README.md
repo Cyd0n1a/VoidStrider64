@@ -13,7 +13,7 @@ Geometry Wars' arena combat, staged inside a Space Giraffe wormhole: a
 semi-transparent, deformable neon grid floats over an infinite, undulating
 tunnel that the whole scene appears to fly through. Every mesh, texture,
 palette and sound effect is generated procedurally at runtime — the ROM ships
-as code, math, and (eventually) a handful of hand-composed tracker modules.
+as code, math, and a handful of hand-composed tracker modules.
 
 Built with [libdragon](https://github.com/DragonMinded/libdragon) (preview
 branch) and [tiny3d](https://github.com/HailToDodongo/tiny3d), in C.
