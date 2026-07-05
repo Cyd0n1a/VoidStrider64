@@ -2,8 +2,9 @@
 
 ![Logo](n64-logo.png)<br>
 
-![Logo](assets/splash/Logo_Cydonis.png)<br>
-
+<div align="center">
+<img src="https://raw.githubusercontent.com/Cyd0n1a/VoidStrider64/refs/heads/master/assets/splash/Logo_Cydonis.png" alt="logo"></img>
+</div>
 
 **A procedurally-generated twin-stick arena shooter for the Nintendo 64.** <br>
 
