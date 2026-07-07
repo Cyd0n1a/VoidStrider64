@@ -1,14 +1,14 @@
 # VoidStrider64 🎮
 
 ![Logo](n64-logo.png)<br>
-
+![Logo2](Voidstrider64-logo-concept.png) <br>
 <div align="center">
 <img src="https://raw.githubusercontent.com/Cyd0n1a/VoidStrider64/refs/heads/master/assets/splash/Logo_Cydonis.png" alt="logo"></img>
 
 
 **A procedurally-generated twin-stick arena shooter for the Nintendo 64.** <br>
 
-![Logo](n64brew.webp)<br>
+![Logo3](n64brew.webp)<br>
 </div>
 Geometry Wars' arena combat, staged inside a Space Giraffe wormhole: a
 semi-transparent, deformable neon grid floats over an infinite, undulating
