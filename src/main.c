@@ -10,50 +10,7 @@
  / / /________         \ \ \   \ \ \__/ / /      / / /___/ / /    / / /    / / /      ___/ / /__     /_/\__/ / /      
 / / /_________\         \ \_\   \ \___\/ /      / / /____\/ /    / / /    / / /      /\__\/_/___\    \ \/___/ /       
 \/____________/          \/_/    \/_____/       \/_________/     \/_/     \/_/       \/_________/     \_____\/        
-                                                                                                                      
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@BBB@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.    @@@@@BBBBB@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,.  _@@@@@           "=@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                "+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                    '4@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@B@@@@@@@@@@@@@@@@@@@@@@@@                       "B@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@"      9@@@@@@@@B.     'B@@@@@@@ga____.               %@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@         9@@@@@@@.       .@@@@@@@@@@@@@@g__              %@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@         @@@@@@@@.       .@@@@@@@@@@@@@@@@@@@_,            0@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@_    . j@@@@@@@@g_.    _@@@@@@@@@@@@@@@@@@@@@@g_.          '@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@_           @@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@           @@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@a          @@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'  _.   %@@@@@@@@@@@@@P'""""`@@@@@@@@g.        .@@@@@@@@@@@
-[@@@@@@@@@@@@@F      B@@@@@@F .+@@@@_.  B@@@@@@@@@@@|      @@@@@@@@@A.         @@@@@@@@@@
-[@@"   \@@@@@         @@@@@@  !@@@@@@;  .@@@T.---- Vg_.   j@'----..B@j         [@@@@@@@@@
-[@@.   ,@@@@@         &@@@@B   B@@@@P   .@@@||      @@|   @@|     [|@@,         @@@@@@@@@
-[@@@@@@@@@@@@@,      j@@@@@@,          .J@@@||      @@|   @@|     [|@@]         @@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@g_       _@@@@@||      --    --      [|@@@         [@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ggggg@@@@@@@||     ___'   ___     [|@@@         [@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@||      --.   --,     [|@@@         [@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@P"     "%@@@@@||      @@|   @@|     [|@@@         [@@@@@@@@
-[@@@@@@@@@@@@@N     "@@@@@@@F   ...    '@@@@||      @@|   @@|     [|@@@         @@@@@@@@@
-[@@"   \@@@@@"        @@@@@@  .g@@@@_.  .@@@1.===== P.    "@L.====='@@)         @@@@@@@@@
-[@@.    @@@@@         [@@@@B  !@@@@@@!  '@@@@@@@@@@@|      @@@@@@@@@@P         ,@@@@@@@@@
-[@@@ggg@@@@@@B       _@@@@@@   0@@@@f   !@@@@@@@@@@@ggggggg@@@@@@@@@@          @@@@@@@@@@
-[@@@@@@@@@@@@@@@~~~J@@@@@@@@@_         A@@@@@@@@@@@@@@@@@@@@@@@@@@@@"         j@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@g~~~~~@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@          _@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@N          _@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@W"         .+@@@@@@@@@@@@@
-[@@@@@@@@@@@@@W"'  "4@@@@@@@@@@P"   "4@@@@@@@@@@@@@@@@@@@@@@@P"          .g@@@@@@@@@@@@@@
-[@@@@@@@@@@@@?        @@@@@@@@'       '@@@@@@@@@@@@@@@@@@@@"            ,@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@         [@@@@@@B.       .@@@@@@@@@@@@@@@@P"            ..g@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@B        @@@@@@@@_       J@@@@@@@@@@@=>'               ,g@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@~___~g@@@@@@@@@@g~___~@@@@@                        _@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                    ._/@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                 __g@@@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@P"""9@@@@@           ..__@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.    @@@@@l__-___gg@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@g___g@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                                                                                                                       
 */
 
 #include <libdragon.h>
@@ -71,6 +28,7 @@
 #include "sim/projectiles.h"
 #include "sim/shards.h"
 #include "sim/bomb.h"
+#include "sim/powerups.h"
 #include "sim/director.h"
 #include "sim/autopilot.h"
 #include "meta/scoring.h"
@@ -117,6 +75,7 @@ static void run_start(void) {
     enemies_init(dseed);
     projectiles_init();
     shards_init();
+    powerups_init();
     director_init(dseed ^ 0xA5A5A5A5u);
     scoring_init();
     bomb_init();
@@ -149,6 +108,15 @@ static void demo_end(void) {
 }
 
 static void player_hit(void) {
+    /* Shield absorbs the hit instead of losing a life */
+    if (powerups_shield_active()) {
+        synth_shield_hit();
+        rumble_kick(0.5f, 0.4f);
+        grid_impulse(player.x, player.y, 60.f * options_flash_scale(), 100.f);
+        /* Shield is consumed but regenerates after 12 seconds */
+        return;
+    }
+
     synth_player_die();
     rumble_kick(1.f, 0.7f);
     grid_impulse(player.x, player.y, 90.f * options_flash_scale(), 150.f);
@@ -159,6 +127,7 @@ static void player_hit(void) {
     enemies_clear();
     projectiles_clear();
     shards_clear();
+    powerups_clear();      /* powerups despawn on death */
 
     lives--;
     if (lives < 0) {
@@ -345,12 +314,16 @@ static void sim_step(float dt) {
 
     run_secs += dt;
 
-    player_update(&player, inp, dt);
-    projectiles_fire_tick(inp, &player, dt);
-    projectiles_update(dt);
-    director_update(dt, player.x, player.y);
-    enemies_update(dt, player.x, player.y, player.vx, player.vy);
-    bomb_update(dt);
+    /* Apply slowmo from active powerups */
+    float sim_dt = dt * powerups_get_slow_factor();
+
+    player_update(&player, inp, sim_dt);
+    projectiles_fire_tick(inp, &player, sim_dt);
+    projectiles_update(sim_dt);
+    director_update(sim_dt, player.x, player.y);
+    enemies_update(sim_dt, player.x, player.y, player.vx, player.vy);
+    bomb_update(sim_dt);
+    powerups_update(sim_dt);
 
     /* Smart bomb (GDD 3.5/8.2): Z detonates a full charge — clears the
      * screen and enemy bolts (no splits, kills still score) and grants
@@ -405,6 +378,19 @@ static void sim_step(float dt) {
         }
     }
 
+    /* Powerup x player collision */
+    for (int p = 0; p < MAX_POWERUPS; p++) {
+        if (!powerups[p].alive) continue;
+        float dx = powerups[p].x - player.x;
+        float dy = powerups[p].y - player.y;
+        if (dx * dx + dy * dy < 18.f * 18.f) {
+            powerup_apply(powerups[p].type);
+            powerups[p].alive = false;
+            synth_pickup();
+            scoring_powerup_bonus(powerups[p].type);
+        }
+    }
+
     /* Enemy / enemy-bolt x player (skip during i-frames; enemies also
      * respect their spawn grace). */
     if (invuln > 0.f) {
@@ -434,19 +420,19 @@ static void sim_step(float dt) {
         }
     }
 
-    shards_update(dt, player.x, player.y);
-    scoring_update(dt);
+    shards_update(sim_dt, player.x, player.y);
+    scoring_update(sim_dt);
 
     /* Ship's wake dents the membrane as it skates (GDD 6.3). */
     grid_impulse(player.x, player.y,
-                 130.f * dt * (0.25f + 0.75f * player.speed_norm), 42.f);
+                 130.f * sim_dt * (0.25f + 0.75f * player.speed_norm), 42.f);
 
     /* Tunnel reacts to combat intensity, with the music's beats layered
      * on top for the audio-reactive Space Giraffe feel (GDD 6.2). */
     float inten = director_intensity()
                 + synth_beat_pulse() * 0.15f * options_flash_scale();
-    tunnel_update(dt, inten > 1.f ? 1.f : inten);
-    grid_update(dt);
+    tunnel_update(sim_dt, inten > 1.f ? 1.f : inten);
+    grid_update(sim_dt);
 }
 
 int main(void) {
