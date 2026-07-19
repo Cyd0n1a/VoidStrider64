@@ -24,6 +24,8 @@ branch) and [tiny3d](https://github.com/HailToDodongo/tiny3d), in C.
  
 ![Screenshot](Screenshot_20260703_101822.png) <br>
 
+![Boxart](voidstrider-boxart-concept.jpg) <br>
+
 ## Controls
 
 | Input | Action |
