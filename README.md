@@ -80,6 +80,8 @@ milestone M5 (combat core+) of the plan described there:
 libdragon and tiny3d are the work of their respective authors under their
 respective licenses (see submodules).
 
+![Libdragon_Logo](assets/splash/ld-logo.png) <br>
+
 ```
 /*
           _       _        _          _                  _                _                    _             _        
