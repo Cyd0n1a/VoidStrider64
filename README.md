@@ -1,6 +1,6 @@
 # VoidStrider64 🎮
 
-![Logo](n64-logo.png)<br>
+![Logo](n64-logo.png) ![https://shields.io/](https://img.shields.io/badge/Platform-Nintendo64) ![https://shields.io](https://img.shields.io/badge/Nintendo_64-Nintendo64) [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](https://github.com/Naereen/badges/) ![Build_Status](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge)<br>
 ![Logo2](Voidstrider64-logo-concept.png) <br>
 <div align="center">
 <img src="https://raw.githubusercontent.com/Cyd0n1a/VoidStrider64/refs/heads/master/assets/splash/Logo_Cydonis.png" alt="logo"></img>
